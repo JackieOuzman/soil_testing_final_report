@@ -1,0 +1,1128 @@
+---
+title: "Snapshot and summary of soil testing outputs"
+author: "Jackie Ouzman"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+    html_document:
+    code_folding: hide
+    df_print: paged
+---
+
+```{r setup, echo=FALSE}
+# # opts_chunk$set(echo = FALSE, cache=FALSE)
+# # read_chunk('../src/closer_to_rick_tables.R')
+# 
+# source("closer_to_rick_tables.R", local = knitr::knit_global())
+```
+
+```{r load library, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+library(tidyverse)
+library(ggplot2)
+
+library(formattable)
+library(sf)
+library(readxl)
+
+
+library(gt)
+library(glue)
+
+
+library(rnaturalearth)
+
+
+library(readr)
+
+library(DT)
+library(plotKML)
+library(knitr)
+library(png)
+
+
+library(magick)
+
+
+```
+
+## Number of N and P trials for 2020 -2021  season 
+
+CSIRO team have been supplied with spatial data for the location of strip trials.
+Along with this information we have details on the type of trial (either N or P) and the fertilisers used.
+
+
+At the date of this report the below graphs reflect the trials for the 2020 - 2021 season.
+
+Note that a few paddocks have both N and P trials (this has been captured in the below graphs).
+
+The below graphs are the number of paddocks in the projcet.
+
+Most paddocks have two zone, but some have just one and some have multiple zone.
+
+
+
+```{r load_data, message=TRUE, warning=FALSE, include=FALSE}
+
+#note that this script runs off the shapefile and has on intermediate steps
+
+
+spatial_data_no_yld <- st_read("W:/value_soil_testing_prj/Yield_data/2020/All_Strips_2020_wgs84.shp")
+
+spatial <-  st_as_sf(spatial_data_no_yld, coords = c("X", "Y"), crs = 4326) #this is for map in later code chuck
+
+spatial_data_no_yld_df <- data.frame(spatial_data_no_yld)
+spatial_data_no_yld_df_1 <- spatial_data_no_yld_df %>% dplyr::select(-geometry)
+
+## some paddocks are excluded from the analysis
+spatial_data_no_yld_df <- spatial_data_no_yld_df_1 %>% 
+   filter(Status != "Excluded from Analysis")
+
+spatial_data_no_yld_df <- spatial_data_no_yld_df %>% 
+  dplyr::mutate(ID_Rate_GSP_type = paste0(Paddock_ID, "-", Rate, "-", GSP,"-",Strip_Type ),
+         ID_trial_type = paste0(Paddock_ID, "-",Strip_Type))
+
+spatial_data_no_yld_df <-spatial_data_no_yld_df %>% 
+  dplyr::mutate(Alt_GSP = ifelse(stringr::str_detect(GSP_list, "Alt GSP"), "Alt_GPS", "No_Alt_GSP"))
+
+```
+
+```{r plot numb trials, echo=FALSE, message=TRUE, warning=FALSE}
+plot1 <-
+  dplyr::distinct(spatial_data_no_yld_df, Paddock_ID ,Strip_Type, .keep_all = TRUE) %>%
+  dplyr::select(Paddock_ID, Strip_Type, Alt_GSP) %>%
+  ggplot(aes(Strip_Type)) +
+  geom_bar() +
+  theme_bw() +
+  geom_text(aes(y = ((..count..)), label = ((..count..))), stat = "count", vjust = -0.25) +
+  labs(
+    title = "Number of P and N trials. 2020 to 2021 season",
+    y = "Count",
+    x = "Type of trial",
+    subtitle = paste0("Total number of paddocks = ", count(
+      distinct(spatial_data_no_yld_df, ID_trial_type)
+    ))
+  )
+plot1
+
+###########################################################################################
+
+## some paddocks are excluded from the analysis
+excluded_frm_analysis_spatial_step1 <- spatial_data_no_yld_df_1 %>% 
+   filter(Status == "Excluded from Analysis")
+
+excluded_frm_analysis_spatial_step1 <-
+  excluded_frm_analysis_spatial_step1 %>%
+  dplyr::select("Paddock_ID",
+                "organisati" ,
+                "contact",
+                "farmer",
+                "paddock",
+                "NoAnalysis" ) %>% 
+  distinct(paddock, .keep_all = TRUE)
+
+excluded_frm_analysis_spatial_step1 %>% 
+  formattable(align = "l", - 1) 
+
+```
+
+The status for the paddocks we have spatial data for.
+
+Unique paddock code and strip type displayed.
+This is NOT zones!
+
+```{r spatial data staus, echo=FALSE, message=TRUE, warning=FALSE}
+
+plot2 <-
+  dplyr::distinct(spatial_data_no_yld_df, Paddock_ID ,Strip_Type, .keep_all = TRUE) %>%
+  dplyr::select(Paddock_ID, Strip_Type, Alt_GSP, Status) %>%
+  ggplot(aes(Strip_Type)) +
+  
+  geom_bar() +
+  theme_bw() +
+  facet_wrap(.~Status)+
+  #geom_text(aes(y = ((..count..)), label = ((..count..))), stat = "count", vjust = -0.25) +
+  labs(
+    title = "Number of P and N strip trials. 2020 to 2021 season",
+    y = "Count",
+    x = "Type of trial",
+    subtitle = paste0("Total number of paddocks = ", count(
+      distinct(spatial_data_no_yld_df, ID_trial_type)
+    ))
+  )
+plot2
+
+
+count <- dplyr::distinct(spatial_data_no_yld_df, Paddock_ID ,Strip_Type, .keep_all = TRUE) %>%
+  count(Status)
+count %>% 
+  formattable(align = "l", - 1) 
+
+
+```
+
+For the done reports how many zones?
+
+This is distinct for paddock ID and trial type.
+
+This will capture zones in paddocks that are included in both N and P trials.
+
+This might be out of date but its 64 zones are processed!
+
+Most of them are P strips.
+
+```{r reports details data staus, echo=FALSE, message=TRUE, warning=FALSE}
+#names(spatial_data_no_yld_df)
+count_done_reports <- dplyr::distinct(spatial_data_no_yld_df, ID_trial_type , .keep_all = TRUE) %>%
+  filter(Status == "5. Report Complete") %>% 
+  count(Strip_Type)
+
+count_done_reports %>% 
+  formattable(align = "l", - 1) 
+```
+
+## Fertiliser strips implemented
+
+In each paddocks fertiliser strips were implemented by the growers.
+
+The fertiliser rate of these strips we intended to reflect how fertilser practices would change as a results of a soil test.
+
+Each paddock had soil test taken for N and P per zone (often 2 zones per paddock).
+
+**Need to add more details here....**
+
+Using the soil test results a recommended fertiliser rate can be derived.
+
+**Sean has now supplied this 18/02/2021 and more notes will be added to this**
+
+However this recommend rate did not translate what was implemented in the fertiliser trials.
+
+Instead the strip rates of the trials were often decided in collaboration between the grower and consultant.
+
+What the project ended up with was a number of strips that were different to the growers standard practice.
+
+A common scenario was; 
+
+- 1/2 the growers rate 
+- double the growers rate 
+- strip that reflected the growers rate.
+
+Other scenario include:
+
+- zero strip
+- 2 rates lower than GSP
+- 2 rates higher than GSP
+
+In the first season of data collection, we identified the growers standard practice and compared the fertiliser strips to this.
+
+We reported if the strip rate was significantly different to the GSP.
+
+We did this comparison in each zone for the paddock.
+
+More details on this is below sections.
+
+## Number of strips per paddock
+
+
+The graph of the number of different rates per paddock, shows for most paddocks 3 different rates were implemented.
+
+The highest number of strips per paddock is 9 rates.
+This is one of Micheal Moodies paddocks and reflects both the VR and the trial design.
+These paddocks may be excluded from the final analysis.
+
+For some paddocks / growers variable fertiliser rate is common practice.
+In these paddocks it is difficult to represent the growers standard practice, as it changes through the paddock.
+
+
+**Note** that the grouping called 'Alt GPS' contains 2 strips that reflect the growers standard practice,
+and the grouping called 'no alt GPS' only contains one strip that reflect the growers standard practice.
+
+I have created a new clm to adjusts this values.
+
+Note that some padocks included in this plot are 'pending edits', we have not yet confirmed the strips locations, zone, or fertiliser rates.
+
+This means that the final plot when all the data is finalised will look slightly different to the below one.
+
+
+```{r plot3 number of strips, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+
+spatial_data_no_yld <- spatial_data_no_yld_df
+spatial_data_no_yld$StripCount <- as.double(spatial_data_no_yld$StripCount)
+spatial_data_no_yld <- spatial_data_no_yld %>% 
+  dplyr::mutate(StripCount2 = case_when(
+    Alt_GSP == "Alt_GPS" ~ (as.double(StripCount)-1 ),
+    Alt_GSP == "No_Alt_GSP" ~ StripCount,
+    TRUE ~ NA_real_
+  ))
+
+
+plot3 <- distinct(spatial_data_no_yld, ID_trial_type , .keep_all = TRUE) %>% 
+  dplyr::select(Paddock_ID, StripCount2,  Strip_Type, Alt_GSP, Status) %>%  
+  ggplot( mapping =  aes(x = as.factor(StripCount2), fill = Status)) +
+  # ggplot( aes(as.factor(StripCount2))) +
+  geom_bar() +
+  theme_bw()+
+  #geom_text(aes(y = ((..count..)), label = ((..count..))), stat = "count", vjust = -0.25) +
+  labs(title = "Total number of strips per paddocks. 2020 to 2021 season", 
+       y = "Count", 
+       x = "Number of strips",
+       subtitle = paste0("Total number of paddocks = ", count(distinct(spatial_data_no_yld, ID_trial_type ))))
+plot3
+
+```
+
+## Alternative GSP
+
+The results in the first season were surprising.
+
+Higher rates of fertiliser did not always equate to higher yields.
+
+This may occur for many reasons:
+
+- poor location of the strips.
+- mismatch between the strips and the yield monitor data.
+- small sample size e.g. the number of yield points per strip and zone.
+- large variation in the soil type.
+- edge effect of the strips.
+- low rates of fertiliser applied (e.g. too little to see a strong yield response).
+
+However despite these wide range of reasons it was thought that yield variation is was driving these observations.
+
+
+In order to better understand the yield variation of the paddocks, we identified an extra strip to reflect the growers standard practice.
+
+We aim to use the two strips that represent the growers standard practice to quantify yield variability. This analysis will be undertaken at a later date and may be used to filter data which will be included in the economic analysis.
+
+In some paddocks we cannot identify an additional strip to reflect the Alt GSP.
+The below graphs reflect the numbers.
+
+
+
+How many of the zones were analysed for alternative GSP?
+
+```{r count alt strips, echo=FALSE, message=FALSE, warning=FALSE}
+
+GSP_AltGSP_t_test <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/processing/r_outputs/merged_comparision_output/GSP_AltGSP_t_test_merged_3c.csv")
+
+
+count_alt <- GSP_AltGSP_t_test %>% count(comparison)
+
+
+count_alt %>% 
+  formattable(align = "l", - 1) 
+
+```
+
+Ideally the yield would be the same in both strips (GSP and Alt GSP), and / or the yield would not be significantly different.
+
+
+
+Significant yield differences between the two strips suggest that there is a high degree of variability between the two strip that were applied with the same fertiliser.
+
+This may occur because the strips have underlying soil, plant growth conditions.
+
+
+```{r plot2 alt strips, echo=FALSE, message=FALSE, warning=FALSE}
+
+#only keep data entries that have a comparison - some we did not have alt strips for.
+GSP_AltGSP_t_test_with_alt <- GSP_AltGSP_t_test %>% 
+  filter(comparison == "GSP_v_AltGSP")
+
+
+GSPvsAltGSP_plot <- GSP_AltGSP_t_test_with_alt %>%
+  
+  ggplot( mapping = aes(x=Significant_practical, fill = Significant ))+
+  geom_bar() +
+  facet_grid(.~ Strip_Type)+
+  theme_bw()+
+  labs(title = "Comparison of yield response in strips with the same fertiliser rate",
+       #subtitle = "Strip with growers standard practice vs alternative growers standard practice",
+       y = "Count of zones with a significant difference",
+       x = "result of t - test (GSP vs. Alt GSP)",
+       subtitle = paste0("Total number of zones (with alt GSP strip) = ", count(distinct(GSP_AltGSP_t_test_with_alt, ID_analysis_zone_temp ))))
+
+
+
+GSPvsAltGSP_plot
+
+
+
+```
+
+```{r table alt strips, echo=FALSE, message=FALSE, warning=FALSE}
+ 
+
+
+
+
+GSP_AltGSP_t_test_display <- GSP_AltGSP_t_test_with_alt %>%  
+  dplyr::select(`Zone ID` =   Zone_ID, 
+                #`Zone name` = Zone.x, 
+                #Farmer,
+                #`Paddock tested`,
+                #`yield response` = yld_response, 
+                `Mean yield difference` = rounded, 
+                `Significant` = Significant_practical
+  ) 
+GSP_AltGSP_t_test_display <- GSP_AltGSP_t_test_display %>% 
+  #arrange(`Zone ID`)
+  arrange(desc(`Mean yield difference`))
+
+GSP_AltGSP_t_test_display %>% 
+  formattable(align = "l", - 1  )
+```
+
+
+
+
+## Rainfall
+
+The cost of fertiliser is reflected by the rainfall zone.
+
+We have used the location of the trials to derive and average rainfall.
+
+** See code - for more details **
+
+The rainfall is assigned to rainfall class
+
+- low rainfall            <= 350 mm
+- medium rainfall between 350 to 500 mm
+- high rainfall > 500 mm
+
+
+
+```{r plot4 rainfall, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+step1 <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/step1_spatial_data_no_yld_2021-06-18.csv")
+
+
+## some paddocks are excluded from the analysis
+step1 <- step1 %>% 
+  filter(Status != "Excluded from Analysis")
+
+step1_paddocks <- dplyr::distinct(step1, Paddock_ID ,Strip_Type, .keep_all = TRUE) 
+
+
+
+
+
+step1_paddocks <- step1_paddocks %>% 
+  dplyr::mutate(
+    rainfall_class = case_when(
+      av_rain<=350 ~ "low",
+      av_rain >500 ~ "high",
+      TRUE ~ "medium"
+    )
+  )
+
+step1_paddocks$rainfall_class <- as.factor(step1_paddocks$rainfall_class)
+step1_paddocks$rainfall_class <- factor(step1_paddocks$rainfall_class, 
+                                        levels = c("high", "medium", "low"))
+
+
+
+
+plot4 <- distinct(step1_paddocks, ID_trial_type , .keep_all = TRUE) %>% 
+  filter(Strip_Type == "N Strip" | Strip_Type =="P Strip") %>% 
+  dplyr::select(Paddock_ID, StripCount,  Strip_Type, Alt_GSP, av_rain, rainfall_class, ID_trial_type, Status) %>%  
+  ggplot( mapping =  aes(x = rainfall_class, fill = Status)) +
+  #ggplot( aes(rainfall_class)) +
+  geom_bar() +
+  facet_grid(.~ Strip_Type)+
+  theme_bw()+
+  #geom_text(aes(y = ((..count..)), label = ((..count..))), stat = "count", vjust = -0.25) +
+  labs(title = "Total number of strips per rainfall class 2020 to 2021 season", 
+       y = "Count of paddocks", 
+       x = "rainfall class",
+       subtitle = paste0("Total number of paddocks = ", 
+                         count(distinct(step1_paddocks, ID_trial_type ))))
+
+
+plot4
+
+
+```
+
+
+## Fertiliser products and rates
+
+The fertiliser that was applied in each strip was confirmed with a pre harvest map.
+
+** could include a pre harvest map **
+
+The fertiliser product and rates applied are converted to N or P content for each strip in the project.
+The below code is a check of what products have been applied in a N and P trial
+
+Note that some products are placeholders and more information will follow.
+For example 'no strip' or 'double' means that the product and or rate have not been supplied yet.
+
+Another note is the product applied in the strip may not reflect the nature of the strip trial.
+In the strips both N and P products have often been applied.
+The below code and process we are requesting all products applied in the strips.
+
+Other products applied as a started and or topdress have also been captured.
+At this stage Therese doesn't want this included in the calculations for total N or P applied.
+
+
+The below products are only for sites where the report is complete (this is just a filter and can be changed easily).
+
+
+### Products applied in N trials
+
+```{r fert_applied product N, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+fert_app_all_steps <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/step2_fert_app_all_steps.csv")
+
+
+
+
+## some paddocks are excluded from the analysis
+fert_app_all_steps <- fert_app_all_steps %>% 
+  filter(Status != "Excluded from Analysis")
+
+## some paddocks are excluded from the analysis
+fert_app_all_steps_report_complete <- fert_app_all_steps %>% 
+  filter(Status == "5. Report Complete")
+
+## what is are the products applied N?
+N_products <- fert_app_all_steps_report_complete %>% 
+  filter(Strip_Type == "N Strip")
+N_products <- N_products %>% 
+  dplyr::select(Paddock_ID,
+                product_fert1, 
+                product_fert2, 
+                product_fert3,
+                Total_sum_N_content,
+                GSP,
+                av_rain)
+N_products_narrow <- pivot_longer(N_products,
+                                  cols = c(product_fert1,
+                                           product_fert2,
+                                           product_fert3),
+                                  names_to = "product_order",
+                                  values_to = "product")
+N_products_narrow <- N_products_narrow %>% 
+  dplyr::distinct(product, .keep_all = TRUE)
+
+
+
+N_products_narrow <- N_products_narrow %>% 
+  dplyr::select(product)
+
+#print(N_products_narrow)
+# N_products_narrow
+N_products_narrow_df <- data.frame(N_products_narrow)
+# N_products_narrow_df
+
+N_products_narrow_df %>% 
+  formattable(align = "l", - 1) 
+
+
+
+
+
+
+
+
+
+```
+
+### Products applied in P trials
+
+
+```{r fert_applied product P, echo=FALSE, message=FALSE, warning=FALSE}
+## what is are the products applied P?
+
+
+
+P_products <- fert_app_all_steps_report_complete %>% 
+  filter(Strip_Type == "P Strip")
+
+
+
+
+P_products <- P_products %>% 
+  dplyr::select(Paddock_ID,
+                product_fert1, 
+                product_fert2, 
+                product_fert3,
+                Total_sum_N_content,
+                GSP,
+                av_rain)
+P_products_narrow <- pivot_longer(P_products,
+                                  cols = c(product_fert1,
+                                           product_fert2,
+                                           product_fert3),
+                                  names_to = "product_order",
+                                  values_to = "product")
+P_products_narrow <- P_products_narrow %>% 
+  dplyr::distinct(product, .keep_all = TRUE)
+
+P_products_narrow <- P_products_narrow %>% 
+  dplyr::select(product)
+
+#print(P_products_narrow)
+P_products_narrow_df <- data.frame(P_products_narrow)
+#P_products_narrow_df
+
+
+P_products_narrow_df %>% 
+   formattable(align = "l", - 1) 
+```
+
+
+
+### How much N was applied in the strips?
+
+
+Summary stats on how much N was applied in the strips.
+Note I have removed the 'Alt GSP' from this analysis.
+
+The results are a bit surprising as in the high rainfall zone the mean and medium N content applied is lower than in the medium rainfall zone.
+
+This may also reflect the trial designs not all paddocks had a zero strip (N applied = 0).
+There are more strips with zero N applied in the high rainfall zone.
+
+This is just for sites / strips that the report is complete.
+
+```{r fert_applied in N, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+N_applied <- fert_app_all_steps_report_complete %>% 
+  filter(Strip_Type == "N Strip")  %>% 
+  filter((GSP !="Alt GSP")%>% 
+           replace_na(TRUE)) %>% 
+  dplyr::select(ID_Rate_GSP_type,
+                Paddock_ID,
+                Total_sum_N_content,
+                GSP,
+                av_rain)
+
+#str(N_applied)
+N_applied <- N_applied %>% 
+  dplyr::mutate(
+    rainfall_class = case_when(
+      av_rain<=350 ~ "low",
+      av_rain >500 ~ "high",
+      TRUE ~ "medium"
+    )
+  )
+
+N_applied$rainfall_class <- as.factor(N_applied$rainfall_class)
+N_applied$rainfall_class <- factor(N_applied$rainfall_class, 
+                                   levels = c("high", "medium", "low"))
+
+
+N_applied_summary <- N_applied %>% 
+  group_by(rainfall_class) %>% 
+  summarise("maximum N applied" =  round(max(Total_sum_N_content, na.rm = FALSE), digits = 0),
+            "minimum N applied" =  round(min(Total_sum_N_content, na.rm = FALSE), digits = 0),
+            "mean N applied" =     round(mean(Total_sum_N_content, na.rm = FALSE), digits = 0),
+            "median N applied" =   round(median(Total_sum_N_content, na.rm = FALSE), digits = 0),
+            "count" = n())
+
+
+N_applied_summary %>% 
+  formattable()
+
+Zero_N_applied <-  N_applied %>% 
+  filter(Total_sum_N_content == 0) %>% 
+  group_by(rainfall_class) %>% 
+  summarise("count strips with zero rate" = n())
+
+
+Zero_N_applied %>% 
+  formattable(align = "l", - 1) 
+
+```
+
+
+## How much P was applied.
+
+Summary stats on how much P was applied in the strips.
+Note I have removed the 'Alt GSP' from this analysis.
+
+
+The results may reflect the trial design, not all paddocks had a zero strip (P applied = 0).
+There are more strips with zero P applied in the medium rainfall zone, than in the high or low rainfall zone.
+
+This is just for sites / strips that the report is complete.
+
+```{r fert_applied in P, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+P_applied <- fert_app_all_steps_report_complete %>% 
+  filter(Strip_Type == "P Strip")  %>% 
+  filter((GSP !="Alt GSP")%>% 
+           replace_na(TRUE)) %>% 
+  dplyr::select(ID_Rate_GSP_type,
+                Paddock_ID,
+                Total_sum_P_content,
+                GSP,
+                av_rain)
+
+
+P_applied <- P_applied %>% 
+  dplyr::mutate(
+    rainfall_class = case_when(
+      av_rain<=350 ~ "low",
+      av_rain >500 ~ "high",
+      TRUE ~ "medium"
+    )
+  )
+
+P_applied$rainfall_class <- as.factor(P_applied$rainfall_class)
+P_applied$rainfall_class <- factor(P_applied$rainfall_class, 
+                                   levels = c("high", "medium", "low"))
+
+
+P_applied_summary <- P_applied %>% 
+  group_by(rainfall_class) %>% 
+  summarise("maximum P applied" =  round(max(Total_sum_P_content, na.rm = FALSE), digits = 0),
+            "minimum P applied" =  round( min(Total_sum_P_content, na.rm = FALSE), digits = 0),
+            "mean P applied" =     round(mean(Total_sum_P_content, na.rm = FALSE), digits = 0),
+            "median P applied" =   round(median(Total_sum_P_content, na.rm = FALSE), digits = 0),
+            "count" = n())
+
+
+P_applied_summary %>% 
+  formattable()
+
+Zero_P_applied <-  P_applied %>% 
+  filter(Total_sum_P_content == 0) %>% 
+  group_by(rainfall_class) %>% 
+  summarise("count strips with zero rate" = n())
+
+
+Zero_P_applied %>% 
+  formattable(align = "l", - 1) 
+ 
+```
+
+
+## Summary of spatial data
+
+This data is a summary of what paddocks implemented a N or P fertiliser trial.
+For these paddocks, we were given spatial data that allowed us to create maps.
+These pre harvest map contain:
+
+- location of strips in paddock
+- location of zone (zones are location that the soil sampling was done)
+- legends which indicate how much fertiliser was applied (product and rate)
+
+
+
+```{r pressure, echo=FALSE, message=FALSE, warning=FALSE}
+#str(spatial_data_no_yld)
+
+
+
+
+
+spatial <- spatial %>% 
+filter(Strip_Type == "N Strip" | Strip_Type =="P Strip")  
+#spatial
+worldmap <- ne_countries(scale = 'medium', type = 'map_units',
+                         returnclass = 'sf')
+
+
+ggplot() + geom_sf(data = worldmap) +
+  geom_sf(data = spatial, color = "black", fill = NA)+
+  coord_sf(xlim = c(120, 160), ylim = c(-44, -25), expand = FALSE) +
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=90,hjust=1)) +
+  facet_wrap(.~ Strip_Type)+
+  labs(title = "Location of paddocks",
+       caption = "")
+```
+
+
+
+## Yield response to fertilisers application (high medium low rates)
+
+Different comparisons are made between fertilisers strips for each zone.
+
+Comparison of yield response in the strip / zone per zone between:
+
+- High fertiliser rate vs low fertiliser rate (yield for high fert rate - yield for low fert rate)
+- High fertiliser rate vs medium fertiliser rate (yield for high fert rate - yield for medium fert rate)
+- Medium fertiliser rate vs low fertiliser rate (yield for medium fert rate - yield for low fert rate)
+
+The yield response is classed as 'positive' when higher rates of fertiliser results in higher yields
+
+The yield response is classed as 'no response' when higher rates of fertiliser results in no change in yields (this is defined as 0 +/- standard error)
+
+
+The yield response is classed as 'negative' when higher rates of fertiliser results in lower yields.
+
+T- test was also run for each comparison and the significant differences at p < 0.05 reported.
+Note that some significant values are not reported for the zone, this may occur when there is not enough data points to run the t - test (although there is still have yield values to make a comparison). 
+
+
+```{r rick table for high low comparision, echo=FALSE, message=FALSE, warning=FALSE}
+
+                        
+high_low_comp <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/processing/r_outputs/merged_comparision_output/hign_low_t_test_merged_3b.csv")
+
+### ricks table
+
+
+
+## for P trials count to make a table
+high_low_P_N_trials <- high_low_comp %>%
+  group_by(Strip_Type, comparison, yld_response) %>%
+  summarise(count = n())
+
+
+high_low_comp$comparison <-
+  factor(
+    high_low_comp$comparison,
+    levels = c("high_v_low", "high_v_medium", "medium_v_low"),
+    labels = c(
+      "high fert vs low fert",
+      "high fert vs medium fert",
+      "medium fert vs low fert"
+    )
+  )
+
+
+high_low_plot <-
+  ggplot(high_low_comp, mapping = aes(x = yld_response, fill = Significant_practical)) +
+  geom_bar() +
+  facet_grid(Strip_Type ~ comparison)+ 
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90,hjust=1)) +
+  scale_x_discrete(
+    labels = c(
+      "positive" = "positive",
+      "no_response" = "no response",
+      "negative" = "negative"
+    )
+  ) +
+  scale_fill_discrete(name="t.test result ")+
+  labs(
+    title = "Comparison of yield response in strips with different fertiliser rate",
+    subtitle = "The yield response is classed as positive when higher rates of fertiliser result in higher yields",
+    y = "Count of zones in yield response class",
+    x = "yield response"
+  )
+high_low_plot
+
+
+```
+
+### High fertiliser rate vs low fertiliser rate.
+
+```{r high vs low table part1, echo=FALSE, message=FALSE, warning=FALSE}
+#high low med comp high vs low  table rates
+
+high_low_comp_t <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/processing/r_outputs/merged_comparision_output/hign_low_t_test_merged_3b.csv")
+
+
+
+
+high_v_low_comp_results <- high_low_comp_t %>% 
+  filter(comparison == "high_v_low") %>%  
+  dplyr::select('Zone ID' = Zone_ID,
+                # `zone name` = Zone.y ,
+                # Farmer,
+                # `Paddock tested`,
+                `Mean yield difference` = rounded, 
+                "yield response" = yld_response,
+                `Significant` = Significant_practical) 
+high_v_low_comp_results <- high_v_low_comp_results %>% 
+  arrange(`Zone ID`)
+
+
+
+high_v_low_comp_results %>% 
+  formattable(align = "l", - 1  )
+
+```
+
+### High fertiliser rate vs medium fertiliser rate.
+
+
+```{r high vs med table part1, echo=FALSE, message=FALSE, warning=FALSE}
+#high low med comp high vs low  table rates
+
+
+
+
+high_v_low_comp_results <- high_low_comp_t %>% 
+  filter(comparison == "high_v_medium") %>%  
+  dplyr::select('Zone ID' = Zone_ID,
+                # `zone name` = Zone.y ,
+                # Farmer,
+                # `Paddock tested`,
+                `Mean yield difference` = rounded, 
+                "yield response" = yld_response,
+                `Significant` = Significant_practical) 
+high_v_low_comp_results <- high_v_low_comp_results %>% 
+  arrange(`Zone ID`)
+
+
+
+high_v_low_comp_results %>% 
+  formattable(align = "l", - 1  )
+
+```
+
+
+## Medium fertiliser rate vs low fertiliser rate.
+
+
+```{r high vs med table part2, echo=FALSE, message=FALSE, warning=FALSE}
+#high low med comp high vs low  table rates
+
+
+
+
+high_v_low_comp_results <- high_low_comp_t %>% 
+  filter(comparison == "medium_v_low") %>%  
+  dplyr::select('Zone ID' = Zone_ID,
+                # `zone name` = Zone.y ,
+                # Farmer,
+                # `Paddock tested`,
+                `Mean yield difference` = rounded, 
+                "yield response" = yld_response,
+                `Significant` = Significant_practical) 
+high_v_low_comp_results <- high_v_low_comp_results %>% 
+  arrange(`Zone ID`)
+
+
+
+high_v_low_comp_results %>% 
+  formattable(align = "l", - 1  )
+
+```
+
+
+
+## An altertaive way to show the yield resposne high, medium and low fertiliser rates.
+
+
+
+
+
+
+
+
+
+
+
+
+```{r high med display, echo=FALSE, message=TRUE, warning=FALSE}
+
+# high_v_low_P
+# high_v_low_N
+# 
+# high_v_medium_P
+# high_v_medium_N
+# 
+# 
+# medium_v_low_N
+# medium_v_low_P
+
+include_graphics("C:/Users/ouz001/working_from_home/soil_testing/Soil_testing_reports/high_v_low_P.png")
+include_graphics("C:/Users/ouz001/working_from_home/soil_testing/Soil_testing_reports/high_v_low_N.png")
+
+include_graphics("C:/Users/ouz001/working_from_home/soil_testing/Soil_testing_reports/high_v_medium_P.png")
+include_graphics("C:/Users/ouz001/working_from_home/soil_testing/Soil_testing_reports/high_v_medium_N.png")
+
+include_graphics("C:/Users/ouz001/working_from_home/soil_testing/Soil_testing_reports/medium_v_low_P.png")
+include_graphics("C:/Users/ouz001/working_from_home/soil_testing/Soil_testing_reports/medium_v_low_N.png")
+
+```
+
+## Yield response to fertilisers application (growers rates compared to other rates)
+
+
+Different comparisons are made between the growers standard practice and fertilisers strips for each zone.
+
+Comparison of yield response in the strip / zone per paddock between:
+
+- Growers standard practice GSP  vs low fertiliser rate (yield for GSP fert rate - yield for low fert rate)
+- Growers standard practice GSP  fertiliser rate vs high fertiliser rate (yield for GSP fert rate - yield for high fert rate)
+
+
+The yield response is classed as 'positive' when higher rates of fertiliser results in higher yields
+
+The yield response is classed as 'no response' when higher rates of fertiliser results in no change in yields (this is defined as 0 +/- standard error)
+
+The yield response is classed as 'negative' when higher rates of fertiliser results in lower yields.
+
+T- test was also run for each comparison and the significant differences at p < 0.05 reported.
+Note that some significant values are not reported for the zone, this may occur when there is not enough data points to run the t - test (although there is still have yield values to make a comparison). 
+
+Also I don't know how meaningful this will be, for example the growers rate is not always the middle fertiliser rate, the strips may have 3 rates 0, 30, 60 and 60 may be the grower rate.
+The similar example may exist where you have 3 rates 30, 60, 120 and 30 may be the growers rate.
+
+In the code I have got a step to check that I have a rate lower than the GSP and a rate higher than the GSP.
+There will be paddocks / zones with 2 lower rates 2 higher rate, only one other rate etc...
+Not sure how I will solve this - maybe just nominate what to use?
+
+
+
+```{r rick table for GR comparision, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+
+GR_comparison <-  read.csv("W:/value_soil_testing_prj/Yield_data/2020/processing/r_outputs/merged_comparision_output/GSP_low_high_comparision_t_test_merged_3d.csv")
+
+
+GR_comparison_plot <-
+  filter(GR_comparison, Significant_practical != "NA") %>%
+  ggplot( mapping = aes(x = yld_response, fill = Significant_practical)) +
+  geom_bar() +
+  facet_grid(Strip_Type ~ comparison)+ 
+  #labeller(Strip_Type = label_wrap_gen(width = 16 ),
+  #         comparison = label_wrap_gen(width = 16))) +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90,hjust=1)) +
+  scale_x_discrete(
+    labels = c(
+      "positive" = "positive",
+      "no_response" = "no response",
+      "negative" = "negative"
+    )
+  ) +
+  #scale_fill_discrete(name="t.test result \npractical")+
+  scale_fill_discrete(name="t.test result")+
+    labs(
+    title = "Comparison of yield response for GSP VS higher/lower rates",
+    subtitle = "The yield response is classed as positive when higher rates of fertiliser result in higher yields",
+    caption = "note: only comparison that support t.test analysis displayed",
+     y = "Count of paddocks in yield response class",
+    x = "yield response"
+  )
+
+GR_comparison_plot
+
+
+
+
+
+
+
+
+
+                      
+
+```
+
+### GSP vs higher fertiliser rates
+
+
+```{r GPS  comp high table rates1, echo=FALSE, message=FALSE, warning=FALSE}
+
+GR_comparison_higher_results <- GR_comparison %>%
+  filter(comparison == "GSP_v_high") %>%
+  dplyr::select(
+    'Zone ID' = Zone_ID,
+    Strip_Type,
+    `Mean yield difference` = rounded,
+    "yield response" = yld_response,
+    `Significant` = Significant_practical,
+    `GSP rate` = "the_GSP_label",
+    `higher than GSP rate` = "higher_than_GSP_label"
+  ) %>%
+  arrange(`Zone ID`)
+
+
+GR_comparison_higher_results$`GSP rate` = round(GR_comparison_higher_results$`GSP rate`, digits = 0)
+GR_comparison_higher_results$`higher than GSP rate` = round(GR_comparison_higher_results$`higher than GSP rate`, digits = 0)
+
+GR_comparison_higher_results %>% 
+  formattable(align = "l", - 1  )
+```
+
+
+
+### GSP vs lower fertiliser rates
+
+
+```{r GPS  comp high table rates2, echo=FALSE, message=FALSE, warning=FALSE}
+
+GR_comparison_lower_results <- GR_comparison %>%
+  filter(comparison == "GSP_v_low") %>%
+  dplyr::select(
+    'Zone ID' = Zone_ID,
+    Strip_Type,
+    `Mean yield difference` = rounded,
+    "yield response" = yld_response,
+    `Significant` = Significant_practical,
+    `GSP rate` = "the_GSP_label",
+    `lower than GSP rate` = "lower_than_GSP_label"
+  ) %>%
+  arrange(`Zone ID`)
+
+
+GR_comparison_lower_results$`GSP rate` = round(GR_comparison_lower_results$`GSP rate`, digits = 0)
+GR_comparison_lower_results$`lower than GSP rate` = round(GR_comparison_lower_results$`lower than GSP rate`, digits = 0)
+
+GR_comparison_lower_results %>% 
+  formattable(align = "l", - 1  )
+```
+
+
+```{r GSP vs high low display, echo=FALSE, message=TRUE, warning=FALSE}
+
+# GSP_v_high_P
+# GSP_v_high_N
+# 
+# GSP_v_low_P
+# GSP_v_low_N
+
+include_graphics("C:/Users/ouz001/working_from_home/soil_testing/Soil_testing_reports/GSP_v_high_P.png")
+include_graphics("C:/Users/ouz001/working_from_home/soil_testing/Soil_testing_reports/GSP_v_high_N.png")
+
+include_graphics("C:/Users/ouz001/working_from_home/soil_testing/Soil_testing_reports/GSP_v_low_P.png")
+include_graphics("C:/Users/ouz001/working_from_home/soil_testing/Soil_testing_reports/GSP_v_low_N.png")
+
+
+```
+
+
+
+
+## Yield response to fertilisers application (recommended rates compared to other rates)
+
+I have not done this yet and Sean is still working on the N rates.
+I will need to add this analysis to the t-test analysis 
+I assume the approach will be similar to the above comparisons.
+
+I will need to make a approx recommended rate.
+For this I will use the recommended rate and evaluate which rate that was implemented was the closest.
+A = recommend rate - abs(rate 1)
+B = recommend rate - abs(rate 2)
+C =  rate - abs(rate 3)
+
+then work out which has the smallest value A, B or C, this will be the approx recommended rate.
+
+Then I will hopeful assign a rate lower than recommend rate and a rate higher than recommend rate.
+
+Comparison of yield response in the strip / zone per paddock between:
+
+- Approx recommend rate  vs low fertiliser rate (yield for app rec fertiliser rate - yield for low fertiliser rate)
+- Approx recommend rate  fertiliser rate vs high fertiliser rate (yield for app rec fertiliser rate - yield for high fertiliser rate)
+
+
+**More To come**
+
+## Translating the Yield response to GM
+
+I have all the elements to do this (I hope).
+The file is called "step4a_results_for_economics.csv"
+
+Located here...
+"W:\value_soil_testing_prj\Yield_data\2020\processing\processing_files\step4a_results_for_economics.csv"
+
+**Again more To come**
+
+

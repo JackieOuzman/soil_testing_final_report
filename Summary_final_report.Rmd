@@ -1,0 +1,207 @@
+---
+title: "Summary for final report"
+author: "Jackie Ouzman"
+date: "08/09/2021"
+output: html_document
+---
+```{r load library, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+library(tidyverse)
+library(ggplot2)
+
+library(formattable)
+library(sf)
+library(readxl)
+
+
+library(gt)
+library(glue)
+
+
+library(rnaturalearth)
+
+
+library(readr)
+
+library(DT)
+library(plotKML)
+library(knitr)
+library(png)
+
+
+library(magick)
+
+
+```
+
+## Number of N and P trials for 2020 -2021  season 
+
+CSIRO team have been supplied with spatial data for the location of strip trials.
+Along with this information we have details on the type of trial (either N or P) and the fertilisers used.
+
+
+At the date of this report the below graphs reflect the trials for the 2020 - 2021 season.
+
+Note that a few paddocks have both N and P trials (this has been captured in the below graphs).
+
+The below graphs are the number of paddocks in the projcet.
+
+Most paddocks have two zone, but some have just one and some have multiple zone.
+This is filtering data out that is marked excluded from analysis and ensured I am only keeping unique Zone ID.
+
+```{r zone shapefile 2020, message=TRUE, warning=FALSE, include=FALSE}
+zone2020 <- st_read("W:/value_soil_testing_prj/Yield_data/2020/All_Zones_2020_wgs84.shp")
+
+
+zone2020_df <- data.frame(zone2020)
+zone2020_1 <- zone2020_df %>% dplyr::select(-geometry)
+
+
+## some paddocks are excluded from the analysis
+zone2020_df <- zone2020_1 %>% 
+  filter(Status != "Excluded from Analysis")
+#just keep a few clms
+names(zone2020_df)
+zone2020_df <- zone2020_df %>% 
+  dplyr::select(Zone_ID,
+                Strip_Type,
+                Status,
+                organisati,
+                contact, 
+                farmer,
+                paddock)
+rm(zone2020, zone2020_1)
+
+
+zone2020_unique <- zone2020_df %>% 
+  distinct(Zone_ID, Strip_Type, .keep_all = TRUE)
+
+#how many zones with N / P strips?
+zone2020_count <- zone2020_unique %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>%
+  group_by(Strip_Type) %>% 
+  summarise(count_zones_by_type = n())
+
+
+
+```
+
+2020 season. Zone per fertilsier strip type (using zone shapefile).
+
+```{r  numb strip trials, echo=FALSE, message=TRUE, warning=FALSE}
+
+zone2020_count
+
+```
+
+2020 season.Paddocks per fertilsier strip type.
+
+```{r zone 2020 per paddock, message=TRUE, warning=FALSE, include=FALSE}
+#how many paddocks with N / P strips?
+
+names(zone2020_unique)
+#I cant just select paddock names beacuse some have the same name house and creek
+
+zone_paddocks <- zone2020_unique %>%
+  dplyr::mutate(paddock_farmer = paste0(paddock, "_", farmer)) %>% 
+  dplyr::distinct(paddock_farmer, Strip_Type, .keep_all = TRUE)
+  
+zone_paddocks 
+ 
+count_paddock <- zone_paddocks %>% 
+  group_by(Strip_Type) %>% 
+  summarise(count_paddocks_by_type = n())
+
+```
+
+
+```{r  numb paddocks, echo=FALSE, message=TRUE, warning=FALSE}
+
+count_paddock
+
+
+```
+
+
+2020 season. How many growers?
+
+```{r zone 2020 per farmers, message=TRUE, warning=FALSE, include=FALSE}
+
+farmers_dist <- zone2020_unique %>% 
+  dplyr::distinct(farmer,Strip_Type, .keep_all = TRUE)
+
+farmers_count_type <- farmers_dist %>% 
+    group_by(Strip_Type) %>% 
+  summarise(count_farmers_by_type = n())
+
+farmers_count <- farmers_dist %>% 
+    summarise(count_farmers_by_type = n())
+
+
+
+```
+
+```{r number of farmers 2020, echo=FALSE, message=TRUE, warning=FALSE}
+farmers_count
+```
+
+
+I can run the same analysis with the strip files but the numbers are slighly different because of the trials that have N and P.
+So I will use the zone shapefile as a basis.
+The code is here but I am ot displaying the output.
+
+
+```{r load_data1, message=TRUE, warning=FALSE, include=FALSE}
+
+#note that this script runs off the shapefile and has on intermediate steps
+
+
+spatial_data_no_yld <- st_read("W:/value_soil_testing_prj/Yield_data/2020/All_Strips_2020_wgs84.shp")
+
+spatial <-  st_as_sf(spatial_data_no_yld, coords = c("X", "Y"), crs = 4326) #this is for map in later code chuck
+
+spatial_data_no_yld_df <- data.frame(spatial_data_no_yld)
+spatial_data_no_yld_df_1 <- spatial_data_no_yld_df %>% dplyr::select(-geometry)
+
+## some paddocks are excluded from the analysis
+spatial_data_no_yld_df <- spatial_data_no_yld_df_1 %>% 
+   filter(Status != "Excluded from Analysis")
+
+spatial_data_no_yld_df <- spatial_data_no_yld_df %>% 
+  dplyr::mutate(ID_Rate_GSP_type = paste0(Paddock_ID, "-", Rate, "-", GSP,"-",Strip_Type ),
+         ID_trial_type = paste0(Paddock_ID, "-",Strip_Type))
+
+spatial_data_no_yld_df <-spatial_data_no_yld_df %>% 
+  dplyr::mutate(Alt_GSP = ifelse(stringr::str_detect(GSP_list, "Alt GSP"), "Alt_GPS", "No_Alt_GSP"))
+
+rm(spatial_data_no_yld_df_1)
+
+strips_distinct_paddockID <- spatial_data_no_yld_df %>% 
+  distinct(Paddock_ID, Strip_Type, .keep_all = TRUE)
+
+```
+
+```{r plot numb trials, message=TRUE, warning=FALSE, include=FALSE}
+plot1 <-
+  dplyr::distinct(strips_distinct_paddockID, Paddock_ID ,Strip_Type, .keep_all = TRUE) %>%
+  dplyr::select(Paddock_ID, Strip_Type, Alt_GSP) %>%
+  ggplot(aes(Strip_Type)) +
+  geom_bar() +
+  theme_bw() +
+  geom_text(aes(y = ((..count..)), label = ((..count..))), stat = "count", vjust = -0.25) +
+  labs(
+    title = "Number of P and N trials. 2020 to 2021 season",
+    y = "Count",
+    x = "Type of trial",
+    subtitle = paste0("Total number of paddocks = ", count(
+      distinct(spatial_data_no_yld_df, ID_trial_type)
+    ))
+  )
+plot1
+
+
+```
+
+
