@@ -42,11 +42,10 @@ CSIRO team have been supplied with spatial data for the location of strip trials
 Along with this information we have details on the type of trial (either N or P) and the fertilisers used.
 
 
-At the date of this report the below graphs reflect the trials for the 2020 - 2021 season.
 
-Note that a few paddocks have both N and P trials (this has been captured in the below graphs).
+Note that a few paddocks have both N and P trials.
 
-The below graphs are the number of paddocks in the projcet.
+
 
 Most paddocks have two zone, but some have just one and some have multiple zone.
 This is filtering data out that is marked excluded from analysis and ensured I am only keeping unique Zone ID.
@@ -205,3 +204,100 @@ plot1
 ```
 
 
+
+
+## Number of N and P trials for 2019 -2020  season 
+
+```{r zone shapefile 2019, message=TRUE, warning=FALSE, include=FALSE}
+zone2019 <- st_read("W:/value_soil_testing_prj/Yield_data/finished/GIS_Results/All_Zones_2019_wgs84.shp")
+
+
+zone2019_df <- data.frame(zone2019)
+zone2019_1 <- zone2019_df %>% dplyr::select(-geometry)
+
+
+## some paddocks are excluded from the analysis
+
+#just keep a few clms
+
+zone2019_df <- zone2019_1 %>% 
+  dplyr::select(Zone_ID,
+                Strip_Type, # I need to add this in ??
+                #Status,
+                organisati,
+                contact, 
+                farmer,
+                paddock)
+rm(zone2019, zone2019_1)
+
+
+zone2019_df_unique <- zone2019_df %>% 
+  distinct(Zone_ID, Strip_Type, .keep_all = TRUE)
+
+#how many zones with N / P strips?
+zone2019_count <- zone2019_df_unique %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>%
+  group_by(Strip_Type) %>% 
+  summarise(count_zones_by_type = n())
+
+
+
+```
+
+2019 season. Zone per fertilsier strip type (using zone shapefile).
+
+```{r  numb strip trials 2019, echo=FALSE, message=TRUE, warning=FALSE}
+
+zone2019_count
+
+```
+
+2019 season.Paddocks per fertilsier strip type.
+
+```{r zone 2019 per paddock, message=TRUE, warning=FALSE, include=FALSE}
+#how many paddocks with N / P strips?
+
+
+zone_paddocks2019 <- zone2019_df_unique %>%
+  dplyr::mutate(paddock_farmer = paste0(paddock, "_", farmer)) %>% 
+  dplyr::distinct(paddock_farmer, Strip_Type, .keep_all = TRUE)
+
+paddocks2019 <-  zone_paddocks2019 %>% 
+  group_by(Strip_Type) %>% 
+  summarise(count_paddocks_by_type = n())
+
+
+```
+
+
+```{r  numb paddocks 2019, echo=FALSE, message=TRUE, warning=FALSE}
+
+paddocks2019
+
+```
+
+
+2019 season. How many growers?
+
+```{r zone 2019 per farmers, message=TRUE, warning=FALSE, include=FALSE}
+
+
+farmers_dist2019 <- zone2019_df_unique %>% 
+  dplyr::distinct(farmer,Strip_Type, .keep_all = TRUE)
+
+farmers_count_type2019 <- farmers_dist2019 %>% 
+  group_by(Strip_Type) %>% 
+  summarise(count_farmers_by_type = n())
+
+farmers_count2019 <- farmers_dist2019 %>% 
+  summarise(count_farmers = n())
+
+
+
+```
+
+```{r number of farmers 2019, echo=FALSE, message=TRUE, warning=FALSE}
+
+farmers_count_type2019
+farmers_count2019
+```

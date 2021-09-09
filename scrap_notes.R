@@ -93,15 +93,53 @@ zone2019_1 <- zone2019_df %>% dplyr::select(-geometry)
 names(zone2019_1)
 zone2019_df <- zone2019_1 %>% 
   dplyr::select(Zone_ID,
-                Strip_Type,
-                Status,
+                Strip_Type, # I need to add this in ??
+                #Status,
                 organisati,
                 contact, 
                 farmer,
                 paddock)
-rm(zone2020, zone2020_1)
+rm(zone2019, zone2019_1)
 
 
-zone2020_unique <- zone2020_df %>% 
+zone2019_df_unique <- zone2019_df %>% 
   distinct(Zone_ID, Strip_Type, .keep_all = TRUE)
 
+#how many zones with N / P strips?
+zone2019_count <- zone2019_df_unique %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>%
+  group_by(Strip_Type) %>% 
+  summarise(count_zones_by_type = n())
+
+zone2019_count
+
+#####################################################################################
+#how many paddocks with N / P strips?
+
+names(zone2019_df_unique)
+#I cant just select paddock names beacuse some have the same name house and creek
+
+zone_paddocks2019 <- zone2019_df_unique %>%
+  dplyr::mutate(paddock_farmer = paste0(paddock, "_", farmer)) %>% 
+  dplyr::distinct(paddock_farmer, Strip_Type, .keep_all = TRUE)
+
+ zone_paddocks2019 %>% 
+  group_by(Strip_Type) %>% 
+  summarise(count_paddocks_by_type = n())
+
+
+## how many growers?
+
+names(zone2019_df_unique)
+farmers_dist2019 <- zone2019_df_unique %>% 
+  dplyr::distinct(farmer,Strip_Type, .keep_all = TRUE)
+
+farmers_count_type2019 <- farmers_dist2019 %>% 
+  group_by(Strip_Type) %>% 
+  summarise(count_farmers_by_type = n())
+
+farmers_count2019 <- farmers_dist2019 %>% 
+  summarise(count_farmers_by_type = n())
+
+farmers_count_type2019
+farmers_count2019
