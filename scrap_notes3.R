@@ -130,7 +130,7 @@ zone_rec_rate_GSP_2019$Strip_Type <- as.character(zone_rec_rate_GSP_2019$Strip_T
 zone_rec_rate_GSP_2019$p_rec <- as.double(zone_rec_rate_GSP_2019$p_rec)
 
 str(zone_rec_rate_GSP_2019)
-#zone_rec_rate_GSP_2019 %>%  dplyr::filter()
+
 zone_rec_rate_GSP_2019 %>%  group_by(Strip_Type, rainfall_class) %>% 
   summarise(Av_N_content_GSP = mean(Total_sum_N_content, na.rm = TRUE),
             Av_N_rec_rate = mean(maxN, na.rm = TRUE),
@@ -138,4 +138,7 @@ zone_rec_rate_GSP_2019 %>%  group_by(Strip_Type, rainfall_class) %>%
             Av_P_rec_rate = mean(p_rec, na.rm = TRUE)
             
             )
-
+zone_rec_rate_GSP_2019_N <- zone_rec_rate_GSP_2019 %>%  dplyr::filter(Strip_Type == "N Strip")
+zone_rec_rate_GSP_2019_N %>%  group_by(rainfall_class) %>%
+  summarise(Av_N_rec_rate = mean(maxN, na.rm = TRUE),
+            median_N_rec_rate = median(maxN, na.rm = TRUE))
