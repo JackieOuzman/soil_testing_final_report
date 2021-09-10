@@ -1172,3 +1172,7 @@ zone_rec_rate_GSP_2020_P %>%  group_by(rainfall_class) %>%
   arrange(rainfall_class)
 ```
 
+
+
+The next step is getting the yield and GM and plot.
+what is the yeild differnce between the approx rec rate and GSP for N and P and the 2 years
