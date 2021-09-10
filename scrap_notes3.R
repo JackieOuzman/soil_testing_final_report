@@ -163,9 +163,9 @@ str(zone_rec_rate_GSP_2019)
 
 zone_rec_rate_GSP_2019 <- zone_rec_rate_GSP_2019 %>% 
   mutate(Rec_N_jax = case_when(
-    rainfall_class == "low" & Total_N <= 80 ~ ((80 -Total_N)*0.5),
-    rainfall_class == "medium" & Total_N <= 160 ~ ((160 -Total_N)*0.5),
-    rainfall_class == "high" & Total_N <= 240 ~ ((240 -Total_N)*0.5),
+    rainfall_class == "low" & Total_N <= 80 ~ ((80 -Total_N)/0.5),
+    rainfall_class == "medium" & Total_N <= 160 ~ ((160 -Total_N)/0.5),
+    rainfall_class == "high" & Total_N <= 240 ~ ((240 -Total_N)/0.5),
     TRUE                           ~ 0  ))
 
 str(zone_rec_rate_GSP_2019)
