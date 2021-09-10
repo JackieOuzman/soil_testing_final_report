@@ -1,3 +1,22 @@
+
+library(tidyverse)
+library(ggplot2)
+library(formattable)
+library(sf)
+library(readxl)
+library(gt)
+library(glue)
+library(rnaturalearth)
+library(readr)
+library(DT)
+library(plotKML)
+library(knitr)
+library(png)
+
+
+library(magick)
+
+
 ###### 2019 #######
 ### The data for recom rates vs GSP ######
 
@@ -47,7 +66,7 @@ rm(all_strips2019_centroid_df)
 
 ####################################################################################################################
 
-fertiliser_applied2019 <- read.csv("W:/value_soil_testing_prj/Yield_data/processing/step2_fert_app_all_steps_2019.csv")
+fertiliser_applied2019 <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/step2_fert_app_all_step_2019.csv")
 str(fertiliser_applied2019)
 
 fert_2019 <- fertiliser_applied2019 %>% 
@@ -83,6 +102,7 @@ str(recom_rateDB2019)
 # select only a few clms with recommedation 
 recom_rateDB2019 <- recom_rateDB2019 %>% 
   dplyr::select(Zone_ID =    `Paddock code` ,
+                Total_N = `Total N`, 
                 p_rec =           `P rec`,
                 n_rec_yld_low =   `N Rec (< 3 t/ha)` ,       
                 n_rec_yld_med =   `N Rec (3-5 t/ha)` ,             
@@ -92,7 +112,13 @@ recom_rateDB2019 <- recom_rateDB2019 %>%
                 #SM_comment_Plant_Tissue = `SM comment Plant Tissue`
   ) 
 
-recom_rateDB2019 <-  dplyr::mutate(recom_rateDB2019,  maxN = apply(recom_rateDB2019[3:5], 1, max, na.rm = TRUE))
+
+recom_rateDB2019$n_rec_yld_low <- as.double(recom_rateDB2019$n_rec_yld_low)
+recom_rateDB2019$n_rec_yld_med <- as.double(recom_rateDB2019$n_rec_yld_med)
+recom_rateDB2019$n_rec_yld_high <- as.double(recom_rateDB2019$n_rec_yld_high)
+
+str(recom_rateDB2019)
+recom_rateDB2019 <-  dplyr::mutate(recom_rateDB2019,  maxN = apply(recom_rateDB2019[4:6], 1, max, na.rm = TRUE))
 
 
 # remove redunant clm and replace inf
@@ -107,7 +133,8 @@ recom_rateDB2019 <- recom_rateDB2019 %>%
 recom_rateDB2019 <- recom_rateDB2019 %>% 
   dplyr::select(Zone_ID  ,
                 p_rec ,
-                maxN)
+                maxN,
+                Total_N)
 
 ##make a paddock_ID clm
 recom_rateDB2019$length_zoneID <- nchar(recom_rateDB2019$Zone_ID)
@@ -131,14 +158,46 @@ zone_rec_rate_GSP_2019$p_rec <- as.double(zone_rec_rate_GSP_2019$p_rec)
 
 str(zone_rec_rate_GSP_2019)
 
-zone_rec_rate_GSP_2019 %>%  group_by(Strip_Type, rainfall_class) %>% 
-  summarise(Av_N_content_GSP = mean(Total_sum_N_content, na.rm = TRUE),
-            Av_N_rec_rate = mean(maxN, na.rm = TRUE),
-            Av_P_content_GSP = mean(Total_sum_P_content, na.rm = TRUE),
-            Av_P_rec_rate = mean(p_rec, na.rm = TRUE)
-            
-            )
+#############################################################################################################
+### Redo the rec rates for N with my rainfall zone
+
+zone_rec_rate_GSP_2019 <- zone_rec_rate_GSP_2019 %>% 
+  mutate(Rec_N_jax = case_when(
+    rainfall_class == "low" & Total_N <= 80 ~ ((80 -Total_N)*0.5),
+    rainfall_class == "medium" & Total_N <= 160 ~ ((160 -Total_N)*0.5),
+    rainfall_class == "high" & Total_N <= 240 ~ ((240 -Total_N)*0.5),
+    TRUE                           ~ 0  ))
+
+str(zone_rec_rate_GSP_2019)
+
+#############################################################################################################
+
+
 zone_rec_rate_GSP_2019_N <- zone_rec_rate_GSP_2019 %>%  dplyr::filter(Strip_Type == "N Strip")
+zone_rec_rate_GSP_2019_N_low <- zone_rec_rate_GSP_2019_N %>%  dplyr::filter(rainfall_class == "low")
+zone_rec_rate_GSP_2019_N_high <- zone_rec_rate_GSP_2019_N %>%  dplyr::filter(rainfall_class == "high")
+
+str(zone_rec_rate_GSP_2019_N)
 zone_rec_rate_GSP_2019_N %>%  group_by(rainfall_class) %>%
-  summarise(Av_N_rec_rate = mean(maxN, na.rm = TRUE),
-            median_N_rec_rate = median(maxN, na.rm = TRUE))
+  summarise(Av_N_soil = mean(Total_N, na.rm = TRUE),
+           
+            Av_N_rec_rate = mean(Rec_N_jax, na.rm = TRUE),
+            #median_N_rec_rate = median(Rec_N_jax, na.rm = TRUE),
+            
+            Av_N_GSP = mean(Total_sum_N_content, na.rm = TRUE),
+            #median_N_GSP = median(Total_sum_N_content, na.rm = TRUE)
+            ) %>% 
+  arrange(rainfall_class)
+
+zone_rec_rate_GSP_2019_P <- zone_rec_rate_GSP_2019 %>%  dplyr::filter(Strip_Type == "P Strip")
+
+zone_rec_rate_GSP_2019_P %>%  group_by(rainfall_class) %>%
+  summarise(#Av_N_soil = mean(Total_N, na.rm = TRUE),
+            
+            Av_P_rec_rate = mean(p_rec, na.rm = TRUE),
+            #median_N_rec_rate = median(Rec_N_jax, na.rm = TRUE),
+            
+            Av_P_GSP = mean(Total_sum_P_content, na.rm = TRUE),
+            #median_N_GSP = median(Total_sum_P_content, na.rm = TRUE)
+  ) %>% 
+  arrange(rainfall_class)
