@@ -304,6 +304,7 @@ farmers_count2019
 
 ## How do the recommended rates 2020 -2021  season compare in the multiple zones in the paddock
 
+I have used Sean recommended rates but I need to change this beacuse the rainfall class dont match the ecomonic work.
 
 
 ```{r stuff around getting recom rates just for our 2020 paddocks, message=TRUE, warning=FALSE, include=FALSE}
