@@ -201,3 +201,8 @@ zone_rec_rate_GSP_2019_P %>%  group_by(rainfall_class) %>%
             #median_N_GSP = median(Total_sum_P_content, na.rm = TRUE)
   ) %>% 
   arrange(rainfall_class)
+zone_rec_rate_GSP_2019
+
+rm(zone_rec_rate_GSP_2019_N,zone_rec_rate_GSP_2019_P,
+   zone_rec_rate_GSP_2019_N_high, zone_rec_rate_GSP_2019_N_low,
+   zone2019_GRDC_bound)

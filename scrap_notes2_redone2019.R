@@ -241,7 +241,8 @@ test1 <- test %>%
     # "SM_comment_Plant_Tissue",
     "Strip_Type",
     "Paddock_ID",
-    "AGROECOLOG"
+    "AGROECOLOG",
+    rainfall_class
   )     
 
 
@@ -319,4 +320,4 @@ Zone_In_Paddocks_N %>%
   summarise(sum_of_when_diff = sum(count_of_diff, na.rm = TRUE),
             count =  n())
 
-
+rm(rec_rate_2019_N, rec_rate_2019_P, Zone_In_Paddocks_N, Zone_In_Paddocks_P)

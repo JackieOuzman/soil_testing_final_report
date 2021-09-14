@@ -546,7 +546,8 @@ test1 <- test %>%
     "SM_comment_Plant_Tissue",
     "Strip_Type",
     "Paddock_ID",
-    "AGROECOLOG"
+    "AGROECOLOG",
+    "rainfall_class"
   )     
 
 
@@ -889,7 +890,8 @@ test1 <- test %>%
     # "SM_comment_Plant_Tissue",
     "Strip_Type",
     "Paddock_ID",
-    "AGROECOLOG"
+    "AGROECOLOG",
+    "rainfall_class"
   )     
 
 
