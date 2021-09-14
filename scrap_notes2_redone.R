@@ -2,7 +2,8 @@
 # 
 # I have used Sean recommended rates but I need to change this beacuse the rainfall class dont match the ecomonic work.
 # 
-# 
+#### SECTION for R markdown ####
+
 # ```{r stuff around getting recom rates just for our 2020 paddocks, message=TRUE, warning=FALSE, include=FALSE}
 
 #########################################################################################################################################
@@ -114,6 +115,27 @@ rain_zone2020 <- rain_zone2020 %>%
 
 
 rm(rainfall_fert,zone2020_unique)
+
+##########################################################################################################################################
+#3b. add in the GRDC zones
+
+zone2020_GRDC_bound <- st_read("W:/value_soil_testing_prj/Yield_data/2020/2020_GRDC_zones_test.shp")
+zone2020_GRDC_bound <- zone2020_GRDC_bound %>% 
+  dplyr::select(Zone_ID,
+                # organisati,
+                # contact,
+                # farmer,
+                # paddock,
+                # Paddock_ID,
+                # Strip_Type,
+                AGROECOLOG)
+zone2020_GRDC_bound <- as.data.frame(zone2020_GRDC_bound) %>% 
+  dplyr::select(- geometry)
+str(zone2020_GRDC_bound)
+str(rain_zone2020)
+
+rain_zone2020 <- left_join(rain_zone2020, zone2020_GRDC_bound)
+
 ##########################################################################################################################################
 #4. Bring in Sean DB
 ##########################################################################################################################################
@@ -210,16 +232,18 @@ test1 <- test %>%
     "SM_comment_Soil_P",
     "SM_comment_Plant_Tissue",
     "Strip_Type",
-    "Paddock_ID"
+    "Paddock_ID",
+    "AGROECOLOG"
   )     
 
 
+## make sure I have only one zone ID
+
+test1 <- test1 %>% 
+  distinct(Zone_ID, .keep_all=TRUE)
 
 
 
-recom_rateDB$Zone_ID <- as.double(recom_rateDB$Zone_ID)
-
-rec_rate_2020 <- recom_rateDB
 
 rm(rain_zone2020, rainfall_fert, zone2020_unique, recom_rateDB,
    list_of_paddocks_include, list_of_zone_include)
@@ -228,7 +252,7 @@ rm(rain_zone2020, rainfall_fert, zone2020_unique, recom_rateDB,
 
 
 
-
+##### SECTION FOR R markdown #####
 
 # For P trials in 2020
 # The number of paddocks with either 1, 2,3 zones
@@ -269,8 +293,8 @@ rec_rate_2020_N <- test1 %>%  dplyr::filter(Strip_Type == "N Strip" | Strip_Type
 
 Zone_In_Paddocks_N <- rec_rate_2020_N %>%  group_by(Paddock_ID) %>% 
   summarise(count_zone = n(),
-            max_N_rec = max(maxN, na.rm = FALSE),
-            min_N_rec = min(maxN, na.rm = FALSE))
+            max_N_rec = max(Rec_N_jax, na.rm = FALSE),
+            min_N_rec = min(Rec_N_jax, na.rm = FALSE))
 
 Zone_In_Paddocks_N <- Zone_In_Paddocks_N %>% 
   mutate(diff_N_rec_rate = max_N_rec - min_N_rec)
@@ -283,5 +307,21 @@ Zone_In_Paddocks_N %>%  group_by(count_zone) %>%
   summarise(sum_of_when_diff = sum(count_of_diff, na.rm = TRUE))
 
 Zone_In_Paddocks_N %>%  
+  summarise(sum_of_when_diff = sum(count_of_diff, na.rm = TRUE),
+            count =  n())
+str(rec_rate_2020_N)
+
+#Group by argo zone
+Zone_In_Paddocks_N_agro <- rec_rate_2020_N %>%  group_by(Paddock_ID, AGROECOLOG) %>% 
+  summarise(count_zone = n(),
+            max_N_rec = max(Rec_N_jax, na.rm = FALSE),
+            min_N_rec = min(Rec_N_jax, na.rm = FALSE))
+Zone_In_Paddocks_N_agro <- Zone_In_Paddocks_N_agro %>% 
+  mutate(diff_N_rec_rate = max_N_rec - min_N_rec)
+Zone_In_Paddocks_N_agro <- Zone_In_Paddocks_N_agro %>% 
+  mutate(count_of_diff = case_when(
+    count_zone >1 & diff_N_rec_rate >10 ~ 1,
+    TRUE ~ 0))
+Zone_In_Paddocks_N_agro %>%  group_by(AGROECOLOG) %>% 
   summarise(sum_of_when_diff = sum(count_of_diff, na.rm = TRUE),
             count =  n())
