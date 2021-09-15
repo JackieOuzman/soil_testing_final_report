@@ -82,6 +82,14 @@ details_2019 <- details_2019 %>%
   dplyr::mutate(GSP = case_when(
     GSP =!is.na(GSP) ~ "GSP" 
   ))
+str(details_2019)
+## remove a couple of problem strips
+details_2019 <- details_2019 %>% 
+  filter(Paddock_ID != 31712  |  !is.na(Rate))
+details_2019 <- details_2019 %>% 
+  filter(Paddock_ID != 51521  |  !is.na(Rate))
+details_2019 <- details_2019 %>% 
+  filter(Paddock_ID != 51522  |  !is.na(Rate))
 
 #######################################################################################
 
@@ -113,6 +121,19 @@ set2_2019 <- set2_2019 %>%
                 Rates,
                 Yld,
                 P_value,Mean_diff,rounded,Significant)
+# Pole has rates in shapefile that are different to this, its that same but expressed in different units
+
+set2_2019 <- set2_2019 %>%
+  dplyr::mutate(Rates = case_when(
+    Paddock_tested == 	"Georges" & Rates ==  0 ~ 0,
+    Paddock_tested == 	"Georges" & Rates ==  3 ~ 23,
+    Paddock_tested == 	"Georges" & Rates ==  6 ~ 46,
+    Paddock_tested == 	"Georges" & Rates ==  9 ~ 69,
+    Paddock_tested == 	"Georges" & Rates ==  12 ~ 92,
+    Paddock_tested == 	"Georges" & Rates ==  15 ~ 115,
+    TRUE ~ as.double(Rates)
+  ))
+
 t.test_2019 <- rbind(set2_2019, set1_2019)
 rm(set1_2019, set2_2019)
 
@@ -144,6 +165,7 @@ t.test_2019 <- t.test_2019 %>%
     Paddock_ID == 52413 ~ "N Strip",
     Paddock_ID == 52444 ~ "N Strip",
     Paddock_ID == 52453 ~ "N Strip",
+    Paddock_ID == 51511 ~ "N Strip",
     Paddock_ID == 33311 ~ "N and P Strip",
     Paddock_ID == 33321 ~ "N and P Strip",
     Paddock_ID == 33331 ~ "N and P Strip",
@@ -218,7 +240,13 @@ t.test_2019 <- t.test_2019 %>%
     TRUE ~ Strip_Type
   ))
 
-
+# is  paddock is missing code "Landmark	James_Falvey_2	Tim_McClelland_4	Mervyns" but I am not sure it should be included??
+names(t.test_2019)
+t.test_2019 <- t.test_2019 %>% 
+  dplyr::mutate(Zone_ID = case_when(
+    Paddock_tested == "Mervyns" ~ 312431,
+    TRUE ~ as.double(Zone_ID)
+  ) )
 
 
 
@@ -236,8 +264,15 @@ details_2019 <- details_2019 %>%
 t.test2019_details <- full_join(details_2019, t.test_2019)
 names(t.test2019_details)
 
+# I have two problem paddocks Jeff (53621) no rates no analysis and Mervyns non zone 312431 
+
 t.test2019_details <- t.test2019_details %>% 
-  dplyr::select(Zone_ID, 
+  filter(Paddock_tested != "Mervyns")
+t.test2019_details <- t.test2019_details %>% 
+  filter(Paddock_ID != 53621)
+
+t.test2019_details <- t.test2019_details %>%
+  dplyr::select(Zone_ID,
                 Paddock_ID,
                 Strip_Type,
                 Rate,
@@ -256,9 +291,118 @@ t.test2019_details <- t.test2019_details %>%
                 Mean_diff,
                 rounded,
                 Significant)
+#### This is ready for more the recomm rates
+
+
+
+####################################################################################################################################################
+## bring in rec rates ##
+
+recom_rateDB2019 <- read_excel( "W:/value_soil_testing_prj/data_base/downloaded_sep2021/GRDC 2019 Paddock Database_SA_VIC_June11 2021.xlsx")
+str(recom_rateDB2019)
+# select only a few clms with recommedation 
+recom_rateDB2019 <- recom_rateDB2019 %>% 
+  dplyr::select(Zone_ID =    `Paddock code` ,
+                Total_N = `Total N`, 
+                p_rec =           `P rec`,
+                n_rec_yld_low =   `N Rec (< 3 t/ha)` ,       
+                n_rec_yld_med =   `N Rec (3-5 t/ha)` ,             
+                n_rec_yld_high =  `N Rec (> 5 t/ha)`,
+                Colwell,
+                DGT,
+                PBI
                 
-                
+  ) 
+
+recom_rateDB2019$n_rec_yld_low <- as.double(recom_rateDB2019$n_rec_yld_low)
+recom_rateDB2019$n_rec_yld_med <- as.double(recom_rateDB2019$n_rec_yld_med)
+recom_rateDB2019$n_rec_yld_high <- as.double(recom_rateDB2019$n_rec_yld_high)
+recom_rateDB2019$Colwell <- as.double(recom_rateDB2019$Colwell)
+recom_rateDB2019$DGT <- as.double(recom_rateDB2019$DGT)
+recom_rateDB2019$PBI <- as.double(recom_rateDB2019$PBI)
+
+recom_rateDB2019 <-  dplyr::mutate(recom_rateDB2019,  maxN = apply(recom_rateDB2019[4:6], 1, max, na.rm = TRUE))
 
 
+# remove redunant clm and replace inf
+recom_rateDB2019 <- recom_rateDB2019 %>% 
+  mutate(
+    maxN = case_when(
+      maxN >= 0 ~ maxN,
+      TRUE ~ NA_real_
+    )
+  )
+
+recom_rateDB2019 <- recom_rateDB2019 %>% 
+  dplyr::select(Zone_ID  ,
+                p_rec ,
+                maxN,
+                Total_N,
+                Colwell,
+                DGT,
+                PBI)
+
+##make a paddock_ID clm
+recom_rateDB2019$length_zoneID <- nchar(recom_rateDB2019$Zone_ID)
+recom_rateDB2019 <- recom_rateDB2019 %>% 
+  mutate(Paddock_ID =   
+           case_when(length_zoneID == 6 ~ substr(Zone_ID, start = 1, stop = 5),
+                     length_zoneID == 7 ~ substr(Zone_ID, start = 1, stop = 6)))
+recom_rateDB2019$Paddock_ID <- as.double(recom_rateDB2019$Paddock_ID)
+
+str(recom_rateDB2019) #this has all the zones
+str(fert_2019_rain_GSP) #this has the paddock details
+
+rm(details_2019, t.test_2019)
+
+### join the t.test data to the recom rates
+str(recom_rateDB2019)
+str(t.test2019_details)
+
+t.test_details_rec_rates <- left_join(t.test2019_details, recom_rateDB2019)
+rm(recom_rateDB2019, t.test2019_details)
+#############################################################################################################
+### Redo the rec rates for N with my rainfall zone
+
+t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+  mutate(Rec_N_jax = case_when(
+    rainfall_class == "low" & Total_N <= 80 ~ ((80 -Total_N)/0.5),
+    rainfall_class == "medium" & Total_N <= 160 ~ ((160 -Total_N)/0.5),
+    rainfall_class == "high" & Total_N <= 240 ~ ((240 -Total_N)/0.5),
+    TRUE                           ~ 0  ))
+
+str(t.test_details_rec_rates)
+
+t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+  mutate(critical_colwell = 4.6*( PBI^ (0.393)))
+## is colwell greater than critical colwell?
+t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+  mutate(colwell_thershold = case_when(
+    Colwell > critical_colwell ~ "adequate",
+    Colwell < critical_colwell ~ "p_required")  )
+
+## if p is required how much extra colwell p is needed to get to critical thershold?
+t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+  mutate(to_reach_col_thershold = case_when(
+    colwell_thershold == "p_required" ~ critical_colwell - Colwell))
+
+## what is the recomm P rate?
+t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+  mutate(p_rec_jax = case_when(
+    colwell_thershold == "p_required" ~ ((0.0019*PBI+2.146)*to_reach_col_thershold),
+    colwell_thershold == "adequate" ~ 5
+    ))
+## clean up extra clms
+
+names(t.test_details_rec_rates)
+
+t.test_details_rec_rates <- t.test_details_rec_rates %>%
+  dplyr::select(-"length_zoneID",
+                - critical_colwell,
+                - colwell_thershold,
+                - to_reach_col_thershold)
 
 
+###################################################################################################################################
+#write this out 
+write.csv(t.test_details_rec_rates, "W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/for_econmics/t.test_details_rec_rates_2019.csv")
