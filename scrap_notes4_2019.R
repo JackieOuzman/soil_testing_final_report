@@ -1,3 +1,12 @@
+
+library(tidyverse)
+library(ggplot2)
+library(formattable)
+library(sf)
+library(readxl)
+library(readr)
+
+
 ## getting the yield difference and GM difference between GSP and Approx
 all_strips2019 <- st_read("W:/value_soil_testing_prj/Yield_data/finished/GIS_Results/All_Strips_2019_wgs84.shp")
 all_strips2019 <- all_strips2019 %>%
@@ -68,6 +77,11 @@ rm(fert_2019,all_strips2019_centroid_df )
 
 names(details_2019)
 
+## The GSP is coded a bit strange its either a GPS or number - should all be GSP
+details_2019 <- details_2019 %>% 
+  dplyr::mutate(GSP = case_when(
+    GSP =!is.na(GSP) ~ "GSP" 
+  ))
 
 #######################################################################################
 
@@ -102,6 +116,14 @@ set2_2019 <- set2_2019 %>%
 t.test_2019 <- rbind(set2_2019, set1_2019)
 rm(set1_2019, set2_2019)
 
+##make a paddock_ID clm
+t.test_2019$length_zoneID <- nchar(t.test_2019$Zone_ID)
+t.test_2019 <- t.test_2019 %>% 
+  mutate(Paddock_ID =   
+           case_when(length_zoneID == 6 ~ substr(Zone_ID, start = 1, stop = 5),
+                     length_zoneID == 7 ~ substr(Zone_ID, start = 1, stop = 6)))
+t.test_2019$Paddock_ID <- as.double(t.test_2019$Paddock_ID)
+
 
 
 ## The t test data does not have N or P Strips and there is duplication
@@ -127,7 +149,7 @@ t.test_2019 <- t.test_2019 %>%
     Paddock_ID == 33331 ~ "N and P Strip",
     TRUE ~ "P Strip"
   ))
-## ann paddocks
+## Ann paddocks are a bit of a mess some results are for P and some are for N I have used TB analysis to work out which is which
 t.test_2019 <- t.test_2019 %>% 
   dplyr::mutate(Strip_Type = case_when(
     #Schlitz_M2
@@ -152,31 +174,91 @@ t.test_2019 <- t.test_2019 %>%
     Zone_ID == 333111 & Rates == 80  ~ "P Strip",
     
     #Chamberlain_2
-    Zone_ID == 333210 & Rates == 0 & Yld > xx ~ "N Strip",
-    Zone_ID == 333211 & Rates == 0 & Yld > xx ~ "N Strip",
+    Zone_ID == 333211 & Rates == 25  ~ "P Strip",
+    Zone_ID == 333211 & Rates == 50  ~ "P Strip",
+    Zone_ID == 333211 & Rates == 75  ~ "P Strip",
+    
+    Zone_ID == 333210 & Rates == 25  ~ "P Strip",
+    Zone_ID == 333210 & Rates == 50  ~ "P Strip",
+    Zone_ID == 333210 & Rates == 75  ~ "P Strip",
+    
+    Zone_ID == 333211 & Rates == 0  ~ "N Strip",
+    Zone_ID == 333211 & Rates == 60  ~ "N Strip",
+    Zone_ID == 333211 & Rates == 120  ~ "N Strip",
+    
+    Zone_ID == 333210 & Rates == 0  ~ "N Strip",
+    Zone_ID == 333210 & Rates == 60  ~ "N Strip",
+    Zone_ID == 333210 & Rates == 120  ~ "N Strip",
+    
     
     #Nelson_3
-    Zone_ID == 333310 & Rates == 0 & Yld > xx ~ "N Strip",
-    Zone_ID == 333311 & Rates == 0 & Yld > xx ~ "N Strip",
+    Zone_ID == 333311 & Rates == 0 & Yld < 1.5 ~ "P Strip",
+    Zone_ID == 333311 & Rates == 25 & Yld > 1.5 ~ "P Strip",
+    Zone_ID == 333311 & Rates == 50 & Yld < 1.5 ~ "P Strip",
+    Zone_ID == 333311 & Rates == 75  ~ "P Strip",
+    
+    Zone_ID == 333310 & Rates == 0 & Yld > 1.8 ~ "P Strip",
+    Zone_ID == 333310 & Rates == 25 & Yld < 1.7 ~ "P Strip",
+    Zone_ID == 333310 & Rates == 50 & Yld > 1.7 ~ "P Strip",
+    Zone_ID == 333310 & Rates == 75  ~ "P Strip",
+    
+    Zone_ID == 333311 & Rates == 0 & Yld < 1.5 ~ "N Strip",
+    Zone_ID == 333311 & Rates == 25 & Yld > 1.5 ~ "N Strip",
+    Zone_ID == 333311 & Rates == 50 & Yld < 1.5 ~ "N Strip",
+    
+    
+    Zone_ID == 333311 & Rates == 0 & Yld > 1.5 ~ "N Strip",
+    Zone_ID == 333311 & Rates == 25 & Yld < 1.5 ~ "N Strip",
+    Zone_ID == 333311 & Rates == 50 & Yld > 1.5 ~ "N Strip",
+    
+    Zone_ID == 333310 & Rates == 0 & Yld < 1.8 ~ "N Strip",
+    Zone_ID == 333310 & Rates == 25 & Yld > 1.7 ~ "N Strip",
+    Zone_ID == 333310 & Rates == 50 & Yld < 1.7 ~ "N Strip",
+    
     TRUE ~ Strip_Type
   ))
 
 
 
-## I want to join details_2019 to t.test I am worried about N and P mixed trials
+
+
+
+## I want to join details_2019 to t.test 
 
 str(t.test_2019)
 str(details_2019)
-##make a paddock_ID clm
-t.test_2019$length_zoneID <- nchar(t.test_2019$Zone_ID)
-t.test_2019 <- t.test_2019 %>% 
-  mutate(Paddock_ID =   
-           case_when(length_zoneID == 6 ~ substr(Zone_ID, start = 1, stop = 5),
-                     length_zoneID == 7 ~ substr(Zone_ID, start = 1, stop = 6)))
-t.test_2019$Paddock_ID <- as.double(t.test_2019$Paddock_ID)
-t.test_2019 <- t.test_2019 %>% 
-  dplyr::mutate(for_join = paste0(Paddock_ID, "_", Rates))
-details_2019 <- details_2019 %>% 
-  dplyr::mutate(for_join = paste0(Paddock_ID, "_", Rate))
 
-join <- left_join(t.test_2019, details_2019)
+t.test_2019 <- t.test_2019 %>% 
+  dplyr::mutate(for_join = paste0(Paddock_ID, Strip_Type, Rates))
+details_2019 <- details_2019 %>% 
+  dplyr::mutate(for_join = paste0(Paddock_ID, Strip_Type, Rate))
+
+t.test2019_details <- full_join(details_2019, t.test_2019)
+names(t.test2019_details)
+
+t.test2019_details <- t.test2019_details %>% 
+  dplyr::select(Zone_ID, 
+                Paddock_ID,
+                Strip_Type,
+                Rate,
+                GSP,
+                Strip_Type,
+                Total_sum_N_content,
+                Total_sum_P_content,
+                Yld,
+                Organisation,
+                Contact,
+                Farmer,
+                Paddock_tested,
+                rainfall_class,
+                AGROECOLOG,
+                P_value,
+                Mean_diff,
+                rounded,
+                Significant)
+                
+                
+
+
+
+
