@@ -1,0 +1,530 @@
+---
+title: "Summary for final report"
+author: "Jackie Ouzman"
+date: "08/09/2021"
+output: html_document
+---
+```{r load library, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+library(tidyverse)
+library(ggplot2)
+
+library(formattable)
+library(sf)
+library(readxl)
+
+
+library(gt)
+library(glue)
+
+
+library(rnaturalearth)
+
+
+library(readr)
+
+library(DT)
+library(plotKML)
+library(knitr)
+library(png)
+
+
+library(magick)
+
+
+```
+
+## Number of N and P trials for 2020 -2021  season 
+
+CSIRO team have been supplied with spatial data for the location of strip trials.
+Along with this information we have details on the type of trial (either N or P) and the fertilisers used.
+
+
+
+Note that a few paddocks have both N and P trials.
+
+
+
+Most paddocks have two zone, but some have just one and some have multiple zone.
+This is filtering data out that is marked excluded from analysis and ensured I am only keeping unique Zone ID.
+
+```{r zone shapefile 2020, message=TRUE, warning=FALSE, include=FALSE}
+zone2020 <- st_read("W:/value_soil_testing_prj/Yield_data/2020/All_Zones_2020_wgs84.shp")
+
+
+zone2020_df <- data.frame(zone2020)
+zone2020_1 <- zone2020_df %>% dplyr::select(-geometry)
+
+
+## some paddocks are excluded from the analysis
+zone2020_df <- zone2020_1 %>% 
+  filter(Status != "Excluded from Analysis")
+#just keep a few clms
+names(zone2020_df)
+zone2020_df <- zone2020_df %>% 
+  dplyr::select(Zone_ID,
+                Strip_Type,
+                Status,
+                organisati,
+                contact, 
+                farmer,
+                paddock)
+rm(zone2020, zone2020_1)
+
+
+zone2020_unique <- zone2020_df %>% 
+  distinct(Zone_ID, Strip_Type, .keep_all = TRUE)
+
+#how many zones with N / P strips?
+zone2020_count <- zone2020_unique %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>%
+  group_by(Strip_Type) %>% 
+  summarise(count_zones_by_type = n())
+
+
+
+```
+
+2020 season. Zone per fertilsier strip type (using zone shapefile).
+
+```{r  numb strip trials, echo=FALSE, message=TRUE, warning=FALSE}
+
+zone2020_count
+
+```
+
+2020 season.Paddocks per fertilsier strip type.
+
+```{r zone 2020 per paddock, message=TRUE, warning=FALSE, include=FALSE}
+#how many paddocks with N / P strips?
+
+names(zone2020_unique)
+#I cant just select paddock names beacuse some have the same name house and creek
+
+zone_paddocks <- zone2020_unique %>%
+  dplyr::mutate(paddock_farmer = paste0(paddock, "_", farmer)) %>% 
+  dplyr::distinct(paddock_farmer, Strip_Type, .keep_all = TRUE)
+  
+zone_paddocks 
+ 
+count_paddock <- zone_paddocks %>% 
+  group_by(Strip_Type) %>% 
+  summarise(count_paddocks_by_type = n())
+
+```
+
+
+```{r  numb paddocks, echo=FALSE, message=TRUE, warning=FALSE}
+
+count_paddock
+
+
+```
+
+
+2020 season. How many growers?
+
+```{r zone 2020 per farmers, message=TRUE, warning=FALSE, include=FALSE}
+
+farmers_dist <- zone2020_unique %>% 
+  dplyr::distinct(farmer,Strip_Type, .keep_all = TRUE)
+
+farmers_count_type <- farmers_dist %>% 
+    group_by(Strip_Type) %>% 
+  summarise(count_farmers_by_type = n())
+
+farmers_count <- farmers_dist %>% 
+    summarise(count_farmers_by_type = n())
+
+
+
+```
+
+```{r number of farmers 2020, echo=FALSE, message=TRUE, warning=FALSE}
+farmers_count
+```
+
+
+I can run the same analysis with the strip files but the numbers are slightly different because of the trials that have N and P.
+So I will use the zone shapefile as a basis.
+The code is here but I am not displaying the output.
+
+
+```{r load_data1, message=TRUE, warning=FALSE, include=FALSE}
+
+#note that this script runs off the shapefile and has on intermediate steps
+
+
+spatial_data_no_yld <- st_read("W:/value_soil_testing_prj/Yield_data/2020/All_Strips_2020_wgs84.shp")
+
+spatial <-  st_as_sf(spatial_data_no_yld, coords = c("X", "Y"), crs = 4326) #this is for map in later code chuck
+
+spatial_data_no_yld_df <- data.frame(spatial_data_no_yld)
+spatial_data_no_yld_df_1 <- spatial_data_no_yld_df %>% dplyr::select(-geometry)
+
+## some paddocks are excluded from the analysis
+spatial_data_no_yld_df <- spatial_data_no_yld_df_1 %>% 
+   filter(Status != "Excluded from Analysis")
+
+spatial_data_no_yld_df <- spatial_data_no_yld_df %>% 
+  dplyr::mutate(ID_Rate_GSP_type = paste0(Paddock_ID, "-", Rate, "-", GSP,"-",Strip_Type ),
+         ID_trial_type = paste0(Paddock_ID, "-",Strip_Type))
+
+spatial_data_no_yld_df <-spatial_data_no_yld_df %>% 
+  dplyr::mutate(Alt_GSP = ifelse(stringr::str_detect(GSP_list, "Alt GSP"), "Alt_GPS", "No_Alt_GSP"))
+
+rm(spatial_data_no_yld_df_1)
+
+strips_distinct_paddockID <- spatial_data_no_yld_df %>% 
+  distinct(Paddock_ID, Strip_Type, .keep_all = TRUE)
+
+```
+
+```{r plot numb trials, message=TRUE, warning=FALSE, include=FALSE}
+plot1 <-
+  dplyr::distinct(strips_distinct_paddockID, Paddock_ID ,Strip_Type, .keep_all = TRUE) %>%
+  dplyr::select(Paddock_ID, Strip_Type, Alt_GSP) %>%
+  ggplot(aes(Strip_Type)) +
+  geom_bar() +
+  theme_bw() +
+  geom_text(aes(y = ((..count..)), label = ((..count..))), stat = "count", vjust = -0.25) +
+  labs(
+    title = "Number of P and N trials. 2020 to 2021 season",
+    y = "Count",
+    x = "Type of trial",
+    subtitle = paste0("Total number of paddocks = ", count(
+      distinct(spatial_data_no_yld_df, ID_trial_type)
+    ))
+  )
+plot1
+
+
+```
+
+
+
+
+## Number of N and P trials for 2019 -2020  season 
+
+```{r zone shapefile 2019, message=TRUE, warning=FALSE, include=FALSE}
+zone2019 <- st_read("W:/value_soil_testing_prj/Yield_data/finished/GIS_Results/All_Zones_2019_wgs84.shp")
+
+
+zone2019_df <- data.frame(zone2019)
+zone2019_1 <- zone2019_df %>% dplyr::select(-geometry)
+
+
+## some paddocks are excluded from the analysis
+
+#just keep a few clms
+
+zone2019_df <- zone2019_1 %>% 
+  dplyr::select(Zone_ID,
+                Strip_Type, # I need to add this in ??
+                #Status,
+                organisati,
+                contact, 
+                farmer,
+                paddock)
+rm(zone2019, zone2019_1)
+
+
+zone2019_df_unique <- zone2019_df %>% 
+  distinct(Zone_ID, Strip_Type, .keep_all = TRUE)
+
+#how many zones with N / P strips?
+zone2019_count <- zone2019_df_unique %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>%
+  group_by(Strip_Type) %>% 
+  summarise(count_zones_by_type = n())
+
+
+
+```
+
+2019 season. Zone per fertilsier strip type (using zone shapefile).
+
+```{r  numb strip trials 2019, echo=FALSE, message=TRUE, warning=FALSE}
+
+zone2019_count
+
+```
+
+2019 season.Paddocks per fertilsier strip type.
+
+```{r zone 2019 per paddock, message=TRUE, warning=FALSE, include=FALSE}
+#how many paddocks with N / P strips?
+
+
+zone_paddocks2019 <- zone2019_df_unique %>%
+  dplyr::mutate(paddock_farmer = paste0(paddock, "_", farmer)) %>% 
+  dplyr::distinct(paddock_farmer, Strip_Type, .keep_all = TRUE)
+
+paddocks2019 <-  zone_paddocks2019 %>% 
+  group_by(Strip_Type) %>% 
+  summarise(count_paddocks_by_type = n())
+
+
+```
+
+
+```{r  numb paddocks 2019, echo=FALSE, message=TRUE, warning=FALSE}
+
+paddocks2019
+
+```
+
+
+2019 season. How many growers?
+
+```{r zone 2019 per farmers, message=TRUE, warning=FALSE, include=FALSE}
+
+
+farmers_dist2019 <- zone2019_df_unique %>% 
+  dplyr::distinct(farmer,Strip_Type, .keep_all = TRUE)
+
+farmers_count_type2019 <- farmers_dist2019 %>% 
+  group_by(Strip_Type) %>% 
+  summarise(count_farmers_by_type = n())
+
+farmers_count2019 <- farmers_dist2019 %>% 
+  summarise(count_farmers = n())
+
+
+
+```
+
+```{r number of farmers 2019, echo=FALSE, message=TRUE, warning=FALSE}
+
+farmers_count_type2019
+farmers_count2019
+```
+
+## How do the recommended rates 2020 -2021  season compare in the multiple zones in the paddock
+
+I have used the low, medium, high rainfall class generated by the location of the trial.
+
+Rather than using the database.
+I have redone the N recommendation based on the revised rainfall class.
+
+Sean is still getting back to me regarding how to calculate the P recommendation.
+I assume it does not run off the rainfall class and I hope that the DB is correct.
+
+I am using the DB for P recommended rates.
+
+
+
+```{r stuff around getting recom rates just for our 2020 paddocks, message=TRUE, warning=FALSE, include=FALSE}
+
+
+All_zone_rates_2020 <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/for_econmics/GM_t.test_details_rec_rates2020.csv")
+
+```
+
+
+For P trials in 2020
+The number of paddocks with either 1, 2,3 zones
+How many paddocks have a P rec rate in zone 1 vs zone 2 that is higher than 5 kg
+
+
+```{r rec rates different in zone 2020 P , echo=FALSE, message=TRUE, warning=FALSE}
+
+P_zones_2020 <- All_zone_rates_2020 %>% 
+  filter(Strip_Type == "P Strip") %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>% 
+  dplyr::select(Paddock_ID:p_rec_jax)
+
+
+
+Zone_In_Paddocks_P_2020 <- P_zones_2020 %>%  group_by(Paddock_ID) %>% 
+  summarise(count_zone = n(),
+            max_P_rec = max(p_rec_jax, na.rm = FALSE),
+            min_P_rec = min(p_rec_jax, na.rm = FALSE))
+
+Zone_In_Paddocks_P_2020 <- Zone_In_Paddocks_P_2020 %>% 
+  mutate(diff_P_rec_rate = max_P_rec - min_P_rec)
+
+Zone_In_Paddocks_P_2020 <- Zone_In_Paddocks_P_2020 %>% 
+  mutate(count_of_diff = case_when(
+    count_zone >1 & diff_P_rec_rate >5 ~ 1,
+    TRUE ~ 0))
+Zone_In_Paddocks_P_2020 %>%  group_by(count_zone) %>% 
+  summarise(sum_of_when_diff = sum(count_of_diff, na.rm = TRUE))
+
+Zone_In_Paddocks_P_2020 %>%  
+  summarise(sum_of_when_diff = sum(count_of_diff, na.rm = TRUE),
+            count =  n())
+
+```
+
+For N trials in 2020
+The number of paddocks with either 1, 2,3 zones
+How many paddocks have a P rec rate in zone 1 vs zone 2 that is higher than 10 kg
+
+Note for the paddocks with the one than 2 zone I have just reported on the max difference.
+For example what was the min and max recommedation.  
+
+
+```{r rec rates different in zone 2020 N, echo=FALSE, message=TRUE, warning=FALSE}
+
+N_zones_2020 <- All_zone_rates_2020 %>% 
+  filter(Strip_Type == "N Strip") %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>% 
+  dplyr::select(Paddock_ID:p_rec_jax)
+
+str(N_zones_2020)
+
+Zone_In_Paddocks_N_2020 <- N_zones_2020 %>%  group_by(Paddock_ID) %>% 
+  summarise(count_zone = n(),
+            max_N_rec = max(Rec_N_jax, na.rm = FALSE),
+            min_N_rec = min(Rec_N_jax, na.rm = FALSE))
+
+Zone_In_Paddocks_N_2020 <- Zone_In_Paddocks_N_2020 %>% 
+  mutate(diff_N_rec_rate = max_N_rec - min_N_rec)
+
+Zone_In_Paddocks_N_2020 <- Zone_In_Paddocks_N_2020 %>% 
+  mutate(count_of_diff = case_when(
+    count_zone >1 & diff_N_rec_rate >5 ~ 1,
+    TRUE ~ 0))
+Zone_In_Paddocks_N_2020 %>%  group_by(count_zone) %>% 
+  summarise(sum_of_when_diff = sum(count_of_diff, na.rm = TRUE))
+
+Zone_In_Paddocks_N_2020 %>%  
+  summarise(sum_of_when_diff = sum(count_of_diff, na.rm = TRUE),
+            count =  n())
+```
+
+
+
+## How do the recommended rates 2019 -2020  season compare in the multiple zones in the paddock
+I have used Sean recommened rates but I think this is a problem beacuase the N rec rates run off rainfall zone 
+Which I suspect is wrong.
+Probably not a huge problem here because we are just comparing the results within the paddock which should have the same rainfall class.
+
+
+```{r stuff around getting recom rates just for our 2019 paddocks, message=TRUE, warning=FALSE, include=FALSE}
+
+
+
+```
+
+
+For N trials in 2019
+The number of paddocks with either 1, 2,3 zones
+How many paddocks have a P rec rate in zone 1 vs zone 2 that is higher than 10 kg
+
+
+```{r rec rates different in zone 2019 N , echo=FALSE, message=TRUE, warning=FALSE}
+
+
+
+
+```
+
+For P trials in 2019
+The number of paddocks with either 1, 2,3 zones
+How many paddocks have a P rec rate in zone 1 vs zone 2 that is higher than 5 kg
+
+
+```{r rec rates different in zone 2019 P , echo=FALSE, message=TRUE, warning=FALSE}
+
+```
+
+
+
+## Details on the soil test, recommend rates and the average GSP
+
+### 2019 data 
+
+This dataset is not great.
+I have patchy records for the fertiliser applied and how much was applied over the season.
+
+Therese has done a lot of work here but some sites just don't seem to add up.
+A variety of problems, I have used her work as a cross refrence.
+
+Sean has used the rainfall zone in the database to assign the N recommended rates.
+This is a problem beacuse if I use the location of the sites and BOM average grid,
+I get a differnt rainfall class.
+
+I have done the N rec rates again.
+
+
+
+```{r stuff around recom rates just for our 2019 paddocks vs GSP, message=TRUE, warning=FALSE, include=FALSE}
+
+
+
+
+```
+
+```{r rec rates vs GSP 2019 N , echo=FALSE, message=TRUE, warning=FALSE}
+
+
+```
+
+### 2020 data
+
+```{r stuff around recom rates just for our 2020 paddocks vs GSP, message=TRUE, warning=FALSE, include=FALSE}
+
+
+
+
+```
+
+```{r rec rates vs GSP 2020 N , echo=FALSE, message=TRUE, warning=FALSE}
+
+```
+
+
+
+
+The yield difference for the 2019.
+Oh boy this data is a mess - have stared here and there - multiple changes.
+The first bit of code is just getting the dataset ready.
+
+(if you need to unpack it more scrap_notes4_2019 script is good to use)
+
+
+
+```{r stuff around yield respose for 2019 paddocks vs GSP, message=TRUE, warning=FALSE, include=FALSE}
+
+
+
+
+
+
+
+```
+
+The next step is getting the yield and GM and plot.
+what is the yeild differnce between the approx rec rate and GSP for N and P and the 2 years
+
+```{r stuff around GM respose for 2019 paddocks vs GSP, message=TRUE, warning=FALSE, include=FALSE}
+
+ 
+  
+
+
+```
+
+
+Plots of the 2019 data
+
+```{plots of GM r rec rates vs GSP 2019, echo=FALSE, message=TRUE, warning=FALSE}
+
+
+```
+
+
+
+2020 data set
+
+```{r stuff around GM respose for 2020 paddocks vs GSP, message=TRUE, warning=FALSE, include=FALSE}
+
+
+
+
+
+```
