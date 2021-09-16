@@ -7,35 +7,44 @@ library(sf)
 library(readxl)
 
 
+#########################################################################################################################################################
+### 1. bring in the data
+t.test_details_rec_rates_20 <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/for_econmics/t.test_details_rec_rates_2020.csv")
 
-t.test_details_rec_rates <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/for_econmics/t.test_details_rec_rates_2019.csv")
+#########################################################################################################################################################
+### 2. remove the alt GSP
+### all of this analysis will be without the Alt GSP so I will remove it
+str(t.test_details_rec_rates_20)
 
-str(t.test_details_rec_rates)
+unique(t.test_details_rec_rates_20$GSP)
+t.test_details_rec_rates_20$GSP <- as.character(t.test_details_rec_rates_20$GSP)
 
-
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% 
+  filter(GSP == "GSP" | is.na(GSP))
+unique(t.test_details_rec_rates_20$GSP)
 ### difference between p rec and p applied
 
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% 
   mutate(diff_p_rec_applied = abs(Total_sum_P_content- p_rec_jax))
-closest_match_p <-t.test_details_rec_rates %>%
+closest_match_p <-t.test_details_rec_rates_20 %>%
   group_by(Zone_ID) %>% 
   summarise(closest_match_p = min(diff_p_rec_applied))
 
 
 #Add this back in
 
-t.test_details_rec_rates <- left_join(t.test_details_rec_rates, closest_match_p)
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+t.test_details_rec_rates_20 <- left_join(t.test_details_rec_rates_20, closest_match_p)
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% 
   mutate(rec_rate_approx_p =
            case_when(
              closest_match_p == diff_p_rec_applied ~ "approx_rec_rate"))
 
-unique(t.test_details_rec_rates$GSP)
-t.test_details_rec_rates$GSP <- as.character(t.test_details_rec_rates$GSP)
+unique(t.test_details_rec_rates_20$GSP)
+t.test_details_rec_rates_20$GSP <- as.character(t.test_details_rec_rates_20$GSP)
 
-str(t.test_details_rec_rates$GSP)
+str(t.test_details_rec_rates_20$GSP)
 
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% 
   mutate(GSP_Rec_both_p = case_when(
     GSP == "GSP"  & rec_rate_approx_p == "approx_rec_rate" ~ "both",
     is.na(GSP)            & rec_rate_approx_p == "approx_rec_rate" ~ "rec_rate",
@@ -45,12 +54,12 @@ t.test_details_rec_rates <- t.test_details_rec_rates %>%
 
 
 ### difference between N rec and N applied
-names(t.test_details_rec_rates)
+names(t.test_details_rec_rates_20)
 
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% 
   mutate(diff_n_rec_applied = abs(Total_sum_N_content- Rec_N_jax))
 
-closest_match_n <-t.test_details_rec_rates %>%
+closest_match_n <-t.test_details_rec_rates_20 %>%
   group_by(Zone_ID) %>% 
   summarise(closest_match_n = min(diff_n_rec_applied))
 
@@ -58,16 +67,16 @@ closest_match_n <-t.test_details_rec_rates %>%
 #Add this back in
 
 
-t.test_details_rec_rates <- left_join(t.test_details_rec_rates, closest_match_n)
-str(t.test_details_rec_rates)
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+t.test_details_rec_rates_20 <- left_join(t.test_details_rec_rates_20, closest_match_n)
+str(t.test_details_rec_rates_20)
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% 
   mutate(rec_rate_approx_n =
            case_when(
              closest_match_n == diff_n_rec_applied ~ "approx_rec_rate"))
 
 
 
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% 
   mutate(GSP_Rec_both_n = case_when(
     GSP == "GSP"  & rec_rate_approx_n == "approx_rec_rate" ~ "both",
     is.na(GSP)            & rec_rate_approx_n == "approx_rec_rate" ~ "rec_rate",
@@ -83,8 +92,8 @@ t.test_details_rec_rates <- t.test_details_rec_rates %>%
 
 
 #### arrange the data so that I have the order of detail that reflects it.
-names(t.test_details_rec_rates)
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+names(t.test_details_rec_rates_20)
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% 
   dplyr::select(
 
 #Tier 1
@@ -140,16 +149,16 @@ GSP_Rec_both_n
 # all crops are wheat
 # the 5 year wheat average is $286 and is same for all sites.
 names(df)
-t.test_details_rec_rates <- t.test_details_rec_rates %>% mutate(grain_income = Yld * 286)
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% mutate(grain_income = Yld * 286)
 
 ##############################################################################
 ## cost for test $3 per ha for rates the approx rate here some GSP are also approx rec rate labelled as both
 
-names(t.test_details_rec_rates)
-unique(t.test_details_rec_rates$GSP_Rec_both_p)
-unique(t.test_details_rec_rates$GSP_Rec_both_n)
+names(t.test_details_rec_rates_20)
+unique(t.test_details_rec_rates_20$GSP_Rec_both_p)
+unique(t.test_details_rec_rates_20$GSP_Rec_both_n)
 
-t.test_details_rec_rates <- t.test_details_rec_rates %>% mutate(cost_test = case_when(
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% mutate(cost_test = case_when(
   GSP_Rec_both_p == "rec_rate" ~ 3.00,
   GSP_Rec_both_p == "both" ~ 3.00,
   
@@ -159,7 +168,7 @@ t.test_details_rec_rates <- t.test_details_rec_rates %>% mutate(cost_test = case
 
 ## cost fert is based on rainfall class - define the rainfall class
 
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% 
   dplyr::mutate(
     variable_costs = case_when(
       Strip_Type == "P Strip" & rainfall_class == "low" ~     194,
@@ -171,8 +180,8 @@ t.test_details_rec_rates <- t.test_details_rec_rates %>%
       Strip_Type == "N Strip" & rainfall_class == "high" ~    498))
 
 ### I don't get this step but it converts N applied from kg/ha to cost of N $ha
-str(t.test_details_rec_rates)
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+str(t.test_details_rec_rates_20)
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% 
   dplyr::mutate(
     Cost_P_N_dollar_ha  = case_when(
       Strip_Type == "P Strip"  ~     Total_sum_P_content * 2.9,
@@ -182,14 +191,14 @@ t.test_details_rec_rates <- t.test_details_rec_rates %>%
 #GM = Income grain – cost test – variable cost – cost of N
 
 
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% 
   dplyr::mutate(
     total_cost = cost_test + variable_costs + Cost_P_N_dollar_ha,
     GM  = grain_income - total_cost)
 
-names(t.test_details_rec_rates)
-all_step_t.test_details_rec_rates <- t.test_details_rec_rates
-neat_t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+names(t.test_details_rec_rates_20)
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20
+t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% 
   dplyr::select(-diff_p_rec_applied,
                 -diff_n_rec_applied,
                 -closest_match_p,
@@ -200,7 +209,7 @@ neat_t.test_details_rec_rates <- t.test_details_rec_rates %>%
                 -Cost_P_N_dollar_ha,
                 -total_cost  )
 
-write.csv(neat_t.test_details_rec_rates, "W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/for_econmics/GM_t.test_details_rec_rates2019.csv")
+write.csv(t.test_details_rec_rates_20, "W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/for_econmics/GM_t.test_details_rec_rates2020.csv")
 
 
 
