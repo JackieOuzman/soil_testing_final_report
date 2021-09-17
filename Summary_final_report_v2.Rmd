@@ -2024,33 +2024,619 @@ N_zones_2020_GSP_rec_rate %>%  group_by(rainfall_class) %>%
 
 ```
 
-The next step is getting the yield and GM and plot.
-what is the yield difference between the approx rec rate and GSP for N and P and the 2 years
 
-```{r stuff around GM respose for 2019 paddocks vs GSP, message=TRUE, warning=FALSE, include=FALSE}
+### So did soil testing lead to higher recommended P rates in 2019?
+
+
+## Plots for 2019
+```{r soil testing recom plot 2019, echo=FALSE, message=TRUE, warning=FALSE}
+
+## Duplication may have crept in ?? I only want one zoneID strip type and rate
+GM_t.test_details_rec_rates2019 <- All_zone_rates_2019 %>% 
+  distinct(Zone_ID, Strip_Type,Rate, .keep_all = TRUE)
+### the GM has some negative values lets recode these as zero
+#str(GM_t.test_details_rec_rates2019) #349
+
+#min(GM_t.test_details_rec_rates2019$GM, na.rm = TRUE)
+GM_t.test_details_rec_rates2019  <- GM_t.test_details_rec_rates2019 %>% 
+  mutate(GM = case_when(
+    GM < 0 ~ 0,
+    TRUE ~ GM
+  ))
+
+
+############################################################################
+
+GM_t.test_details_rec_rates2019_P <- GM_t.test_details_rec_rates2019 %>% 
+  dplyr::filter(Strip_Type == "P Strip")
+#str(GM_t.test_details_rec_rates2019_P)
+
+P_zone_2019 <- GM_t.test_details_rec_rates2019_P %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>% 
+  dplyr::select(Paddock_ID:Rec_N_jax)
+
+ggplot(P_zone_2019, aes(x=p_rec)) +
+  geom_histogram(aes(y = stat(count) / sum(count))) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+  #facet_wrap(.~ rainfall_class_f)+
+  theme_bw() +
+  geom_vline(
+    xintercept = 5,
+    linetype = "dotted",
+    color = "red",
+    size = 2.0
+  ) +
+  #scale_x_continuous(breaks = seq(-5.0, 5.0, by = .5))+
+  labs(
+    title = "Recommendation for P 2019",
+    y = "Frequency of zones",
+    x = "Soil Test Fertiliser Recommendation (kg P/ha)"
+    #subtitle = "only including zones used in economic analysis (n =103)"
+  )+
+  theme(axis.title.y = element_text(size = 20),
+        axis.title.x = element_text(size = 20),
+        axis.text.x = element_text(size = 18),
+        axis.text.y = element_text(size = 18))
+
+
+
+###########################   N    ###########################################
+GM_t.test_details_rec_rates2019_N <- GM_t.test_details_rec_rates2019 %>% 
+  dplyr::filter(Strip_Type == "N Strip")
+
+N_zone <- GM_t.test_details_rec_rates2019_N %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>% 
+  dplyr::select(Paddock_ID:Rec_N_jax)
+
+
+ggplot(N_zone, aes(x=Rec_N_jax)) +
+  geom_histogram(aes(y = stat(count) / sum(count))) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+  #facet_wrap(.~ rainfall_class_f)+
+  theme_bw() +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dotted",
+    color = "red",
+    size = 2.0
+  ) +
+  #scale_x_continuous(breaks = seq(-5.0, 5.0, by = .5))+
+  labs(
+    title = "Recommendation for N 2019",
+    y = "Frequency of zones",
+    x = "Soil Test Fertiliser Recommendation (kg N/ha)")+
+  #subtitle = "only including zones used in economic analysis (n =70)"
+  theme(axis.title.y = element_text(size = 20),
+        axis.title.x = element_text(size = 20),
+        axis.text.x = element_text(size = 18),
+        axis.text.y = element_text(size = 18))
+
+```
+
+```{r soil testing recom plot 2020, echo=FALSE, message=TRUE, warning=FALSE}
+ 
+## Duplication may have crept in ?? I only want one zoneID strip type and rate
+GM_t.test_details_rec_rates2020 <- All_zone_rates_2020 %>% 
+  distinct(Zone_ID, Strip_Type,Rate, .keep_all = TRUE)
+### the GM has some negative values lets recode these as zero
+#str(GM_t.test_details_rec_rates2019) #349
+
+#min(GM_t.test_details_rec_rates2019$GM, na.rm = TRUE)
+GM_t.test_details_rec_rates2020  <- GM_t.test_details_rec_rates2020 %>% 
+  mutate(GM = case_when(
+    GM < 0 ~ 0,
+    TRUE ~ GM
+  ))
+
+
+############################################################################
+
+GM_t.test_details_rec_rates2020_P <- GM_t.test_details_rec_rates2020 %>% 
+  dplyr::filter(Strip_Type == "P Strip")
+#str(GM_t.test_details_rec_rates2019_P)
+
+P_zone_2020 <- GM_t.test_details_rec_rates2020_P %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>% 
+  dplyr::select(Paddock_ID:Rec_N_jax)
+
+ggplot(P_zone_2020, aes(x=p_rec)) +
+  geom_histogram(aes(y = stat(count) / sum(count))) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+  #facet_wrap(.~ rainfall_class_f)+
+  theme_bw() +
+  geom_vline(
+    xintercept = 5,
+    linetype = "dotted",
+    color = "red",
+    size = 2.0
+  ) +
+  #scale_x_continuous(breaks = seq(-5.0, 5.0, by = .5))+
+  labs(
+    title = "Recommendation for P 2020",
+    y = "Frequency of zones",
+    x = "Soil Test Fertiliser Recommendation (kg P/ha)"
+    #subtitle = "only including zones used in economic analysis (n =103)"
+  )+
+  theme(axis.title.y = element_text(size = 20),
+        axis.title.x = element_text(size = 20),
+        axis.text.x = element_text(size = 18),
+        axis.text.y = element_text(size = 18))
+
+
+
+###########################   N    ###########################################
+GM_t.test_details_rec_rates2020_N <- GM_t.test_details_rec_rates2020 %>% 
+  dplyr::filter(Strip_Type == "N Strip")
+
+N_zone <- GM_t.test_details_rec_rates2020_N %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>% 
+  dplyr::select(Paddock_ID:Rec_N_jax)
+
+
+ggplot(N_zone, aes(x=Rec_N_jax)) +
+  geom_histogram(aes(y = stat(count) / sum(count))) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+  #facet_wrap(.~ rainfall_class_f)+
+  theme_bw() +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dotted",
+    color = "red",
+    size = 2.0
+  ) +
+  #scale_x_continuous(breaks = seq(-5.0, 5.0, by = .5))+
+  labs(
+    title = "Recommendation for N 2020",
+    y = "Frequency of zones",
+    x = "Soil Test Fertiliser Recommendation (kg N/ha)")+
+  #subtitle = "only including zones used in economic analysis (n =70)"
+  theme(axis.title.y = element_text(size = 20),
+        axis.title.x = element_text(size = 20),
+        axis.text.x = element_text(size = 18),
+        axis.text.y = element_text(size = 18))
+
+
+```
+
+## Tables for 2019
+
 
  
+```{r soil testing recom plot 2019 P, echo=FALSE, message=TRUE, warning=FALSE}
+### Duplication may have crept in ?? I only want one zoneID strip type and rate
+rec_rate_vs_GSP_2019_P_N <- All_zone_rates_2019 %>% 
+  distinct(Zone_ID, Strip_Type, Rate, .keep_all = TRUE)
+### the GM has some negative values lets recode these as zero
+#str(rec_rate_vs_GSP_2019_P_N) #349
+
+############################################################################
+rec_rate_vs_GSP_2019_P_N$GSP <- as.character(rec_rate_vs_GSP_2019_P_N$GSP)
+rec_rate_vs_GSP_2019_P_N$Strip_Type <- as.character(rec_rate_vs_GSP_2019_P_N$Strip_Type)
+#str(GM_t.test_details_rec_rates2019)
+
+###########################   P    ###########################################
+rec_rate_vs_GSP_2019_P <- rec_rate_vs_GSP_2019_P_N %>% 
+  dplyr::filter(Strip_Type == "P Strip")
+
+
+rec_rate_vs_GSP_2019_P <- rec_rate_vs_GSP_2019_P %>% mutate(soil_test_says_P = case_when(
+  Strip_Type == "P Strip" & GSP == "GSP"& Total_sum_P_content < p_rec ~  "add_more_P",
+  Strip_Type == "P Strip" & GSP == "GSP"& Total_sum_P_content == p_rec ~ "no_change",
+  Strip_Type == "P Strip" & GSP == "GSP"& Total_sum_P_content > p_rec ~  "less_P",
+))
+
+#View(rec_rate_vs_GSP_2019_P)  ## this has all the rates in it
+## what is the rec rate per zone
+rec_rate_vs_GSP_2019_P_zone <-rec_rate_vs_GSP_2019_P %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>% 
+  dplyr::select(Paddock_ID:Rec_N_jax)
+
+rec_rate_vs_GSP_2019_P_zone <- rec_rate_vs_GSP_2019_P_zone %>% 
+  mutate(yld_repsonse_likely_to_p = case_when(
+    p_rec >= 5 ~ "respose",
+    TRUE ~ "no_resposne"
+  ))
+P_zone_count_2019 <- rec_rate_vs_GSP_2019_P_zone %>%  group_by() %>% 
+  summarise(zone_2019_P = n() )
+
+table1_2019_P <- rec_rate_vs_GSP_2019_P_zone %>%  
+  group_by(yld_repsonse_likely_to_p) %>% 
+  summarise(count_p_over5 = n()) 
+
+
+table2_2019_P <-rec_rate_vs_GSP_2019_P %>%  filter(Strip_Type == "P Strip") %>%
+  distinct(Zone_ID, .keep_all = TRUE) %>%
+  group_by(soil_test_says_P) %>%
+  summarise(count_vs_GSP = n() )
+
+# P_zone_count_2019
+# table1_2019_P
+# table2_2019_P
+
+
+```
+
+# Count of P zone in 2019
+```{r Count of P zone in 2019, echo=FALSE, message=TRUE, warning=FALSE}
+P_zone_count_2019
+```
+
+# Count of P zone in 2019 that had rec rate  >= 5
+zones with a likley resposne to P fert
+```{r Count of P zone in 2019 that had rec rate more than 5, echo=FALSE, message=TRUE, warning=FALSE}
+table1_2019_P
+```
+
+# Count of P zone in 2019 rec rate suggested changing planned practice
+
+```{r Count of P zone in 2019 rec rate change practice, echo=FALSE, message=TRUE, warning=FALSE}
+table2_2019_P
+```
+
+
+```{r soil testing recom plot 2019 N, echo=FALSE, message=TRUE, warning=FALSE}
+
+###########################   N    ###########################################
+rec_rate_vs_GSP_2019_N <- rec_rate_vs_GSP_2019_P_N %>% 
+  dplyr::filter(Strip_Type == "N Strip")
+
+
+rec_rate_vs_GSP_2019_N <- rec_rate_vs_GSP_2019_N %>% mutate(soil_test_says_N = case_when(
+  Strip_Type == "N Strip" & GSP == "GSP"& Total_sum_P_content < Rec_N_jax ~  "add_more_N",
+  Strip_Type == "N Strip" & GSP == "GSP"& Total_sum_P_content == Rec_N_jax ~ "no_change",
+  Strip_Type == "N Strip" & GSP == "GSP"& Total_sum_P_content > Rec_N_jax ~  "less_N",
+))
+
+#View(rec_rate_vs_GSP_2019_P)  ## this has all the rates in it
+## what is the rec rate per zone
+rec_rate_vs_GSP_2019_N_zone <-rec_rate_vs_GSP_2019_N %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>% 
+  dplyr::select(Paddock_ID:Rec_N_jax)
+
+rec_rate_vs_GSP_2019_N_zone <- rec_rate_vs_GSP_2019_N_zone %>% 
+  mutate(yld_repsonse_likely_to_n = case_when(
+    Rec_N_jax > 0 ~ "respose",
+    TRUE ~ "no_resposne"
+  ))
+N_zone_count_2019 <- rec_rate_vs_GSP_2019_N_zone %>%  group_by() %>% 
+  summarise(zone_2019_N = n() )
+
+table1_2019_N <- rec_rate_vs_GSP_2019_N_zone %>%  
+  group_by(yld_repsonse_likely_to_n) %>% 
+  summarise(count_n_over0 = n()) 
+
+
+table2_2019_N <-rec_rate_vs_GSP_2019_N %>%  
+  distinct(Zone_ID, .keep_all = TRUE) %>%
+  group_by(soil_test_says_N) %>%
+  summarise(count_vs_GSP = n() )
+#View(rec_rate_vs_GSP_2019_N)
+
+# N_zone_count_2019
+# table1_2019_N
+# table2_2019_N
+```
+
+# Count of N zone in 2019
+```{r Count of N zone in 2019, echo=FALSE, message=TRUE, warning=FALSE}
+N_zone_count_2019
+```
+
+# Count of N zone in 2019 that had rec rate  > 0
+zones with a likley resposne to P fert
+```{r Count of N zone in 2019 that had rec rate more than 0, echo=FALSE, message=TRUE, warning=FALSE}
+table1_2019_N
+```
+
+# Count of N zone in 2019 rec rate suggested changing planned practice
+
+```{r Count of N zone in 2019 rec rate change practice, echo=FALSE, message=TRUE, warning=FALSE}
+table2_2019_N
+```
+
+
+
+```{r soil testing recom plot 2020 P and N, message=TRUE, warning=FALSE, include=FALSE}
+### Duplication may have crept in ?? I only want one zoneID strip type and rate
+rec_rate_vs_GSP_2020_P_N <- All_zone_rates_2020 %>% 
+  distinct(Zone_ID, Strip_Type, Rate, .keep_all = TRUE)
+### the GM has some negative values lets recode these as zero
+#str(rec_rate_vs_GSP_2020_P_N) #562
+
+############################################################################
+rec_rate_vs_GSP_2020_P_N$GSP <- as.character(rec_rate_vs_GSP_2020_P_N$GSP)
+rec_rate_vs_GSP_2020_P_N$Strip_Type <- as.character(rec_rate_vs_GSP_2020_P_N$Strip_Type)
+#str(GM_t.test_details_rec_rates2020)
+
+###########################   P    ###########################################
+rec_rate_vs_GSP_2020_P <- rec_rate_vs_GSP_2020_P_N %>% 
+  dplyr::filter(Strip_Type == "P Strip")
+
+
+rec_rate_vs_GSP_2020_P <- rec_rate_vs_GSP_2020_P %>% mutate(soil_test_says_P = case_when(
+  Strip_Type == "P Strip" & GSP == "GSP"& Total_sum_P_content < p_rec ~  "add_more_P",
+  Strip_Type == "P Strip" & GSP == "GSP"& Total_sum_P_content == p_rec ~ "no_change",
+  Strip_Type == "P Strip" & GSP == "GSP"& Total_sum_P_content > p_rec ~  "less_P",
+))
+
+#View(rec_rate_vs_GSP_2020_P)  ## this has all the rates in it
+## what is the rec rate per zone
+rec_rate_vs_GSP_2020_P_zone <-rec_rate_vs_GSP_2020_P %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>% 
+  dplyr::select(Paddock_ID:Rec_N_jax,soil_test_says_P )
+#str(rec_rate_vs_GSP_2020_P_zone)
+
+
+#create a new clm
+rec_rate_vs_GSP_2020_P_zone <- rec_rate_vs_GSP_2020_P_zone %>% 
+  mutate(yld_repsonse_likely_to_p = case_when(
+    p_rec >= 5 ~ "respose",
+    TRUE ~ "no_resposne"
+  ))
+## count the number of P zones
+P_zone_count2020 <- rec_rate_vs_GSP_2020_P_zone %>%  group_by() %>% 
+  summarise(count = n() )
+#P_zone_count
+# how many zones indicate a yld resposne by the soil test?
+
+table1_2020_P <- rec_rate_vs_GSP_2020_P_zone %>%  
+  group_by(yld_repsonse_likely_to_p) %>% 
+  summarise(count_P_over5 = n() )
+
+#str(rec_rate_vs_GSP_2020_P_zone)
+
+table2_2020_P <-rec_rate_vs_GSP_2020_P_zone %>%  
+  filter(Strip_Type == "P Strip") %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>% 
+  group_by(soil_test_says_P) %>% 
+  summarise(count_vs_GSP = n()) 
+
+# table1_2020_P
+# table2_2020_P
+# 
+# 
+# str(rec_rate_vs_GSP_2020_P_N)
+
+
+###########################   N    ###########################################
+rec_rate_vs_GSP_2020_N <- rec_rate_vs_GSP_2020_P_N %>% 
+  dplyr::filter(Strip_Type == "N Strip")
+
+
+rec_rate_vs_GSP_2020_N <- rec_rate_vs_GSP_2020_N %>% mutate(soil_test_says_N = case_when(
+  Strip_Type == "N Strip" & GSP == "GSP"& Total_sum_P_content < Rec_N_jax ~  "add_more_N",
+  Strip_Type == "N Strip" & GSP == "GSP"& Total_sum_P_content == Rec_N_jax ~ "no_change",
+  Strip_Type == "N Strip" & GSP == "GSP"& Total_sum_P_content > Rec_N_jax ~  "less_N",
+))
+
+#View(rec_rate_vs_GSP_2020_P)  ## this has all the rates in it
+## what is the rec rate per zone
+rec_rate_vs_GSP_2020_N_zone <-rec_rate_vs_GSP_2020_N %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>% 
+  dplyr::select(Paddock_ID:Rec_N_jax, soil_test_says_N)
+
+rec_rate_vs_GSP_2020_N_zone <- rec_rate_vs_GSP_2020_N_zone %>% 
+  mutate(yld_repsonse_likely_to_n = case_when(
+    Rec_N_jax > 0 ~ "respose",
+    TRUE ~ "no_resposne"
+  ))
+N_zone_count_2020 <- rec_rate_vs_GSP_2020_N_zone %>%  group_by() %>% 
+  summarise(zone_2020_N = n() )
+
+table1_2020_N <- rec_rate_vs_GSP_2020_N_zone %>%  
+  group_by(yld_repsonse_likely_to_n) %>% 
+  summarise(count_n_over0 = n()) 
+
+
+table2_2020_N <-rec_rate_vs_GSP_2020_N %>%  
+  distinct(Zone_ID, .keep_all = TRUE) %>%
+  group_by(soil_test_says_N) %>%
+  summarise(count_vs_GSP = n() )
+#View(rec_rate_vs_GSP_2020_N)
+
+# N_zone_count_2020
+# table1_2020_N
+# table2_2020_N
+
+
+```
+
+
+# Count of P zone in 2020
+```{r Count of P zone in 2020, echo=FALSE, message=TRUE, warning=FALSE}
+P_zone_count2020
+```
+
+# Count of P zone in 2020 that had rec rate  > = 5
+zones with a likley resposne to P fert
+```{r Count of P zone in 2020 that had rec rate more than 0, echo=FALSE, message=TRUE, warning=FALSE}
+table1_2020_P
+```
+
+# Count of P zone in 2020 rec rate suggested changing planned practice
+
+```{r Count of P zone in 2020 rec rate change practice, echo=FALSE, message=TRUE, warning=FALSE}
+table2_2020_P
+```
+
+# Count of N zone in 2020
+```{r Count of N zone in 2020, echo=FALSE, message=TRUE, warning=FALSE}
+N_zone_count_2020
+```
+
+# Count of N zone in 2020 that had rec rate  >  0
+zones with a likley resposne to P fert
+```{r Count of N zone in 2020 that had rec rate more than 0, echo=FALSE, message=TRUE, warning=FALSE}
+table1_2020_N
+```
+
+# Count of N zone in 2020 rec rate suggested changing planned practice
+
+```{r Count of N zone in 2020 rec rate change practice, echo=FALSE, message=TRUE, warning=FALSE}
+table2_2020_N
+```
+
+## Did the soil test recommendations lead to greater gross margins?
+
+We don't always have a match with the recom rates and what as applied.
+So we have calualted the best match based on:
+how much N / P was applied in the season (or we were told about)
+what the recommeded rate was calualted from the soil test.
+
+
+```{r 2019 GM P plots GSP vs approx, echo=FALSE, message=TRUE, warning=FALSE}
+
+ #All_zone_rates_2019  
+GM_t.test_details_rec_rates2019 <- All_zone_rates_2019 
+  ### remove all the zones / strips that are classed as other, ie they are not the GSP or the approx rec rate.
+#unique(GM_t.test_details_rec_rates2019$GSP_Rec_both_p)
+GM_t.test_details_rec_rates2019$GSP_Rec_both_p <- as.character(GM_t.test_details_rec_rates2019$GSP_Rec_both_p)
+GM_t.test_details_rec_rates2019  <- GM_t.test_details_rec_rates2019 %>% 
+  mutate(GM = case_when(
+    GM < 0 ~ 0,
+    TRUE ~ GM
+  ))
+
+################ P Strips #####################################
+## only keep P strips that are either rec rate GSP or both
+P_approx_GSP_zone_strip_2019 <- GM_t.test_details_rec_rates2019 %>%  
+  filter(Strip_Type == "P Strip") %>% 
+  filter(GSP_Rec_both_p !=  "other")
+#str(P_approx_GSP_zone_strip_2019)
+#View(P_approx_GSP_zone_strip_2019)
+P_approx_GSP_zone_strip_2019$GSP_Rec_both_p <- as.character(P_approx_GSP_zone_strip_2019$GSP_Rec_both_p)
+#unique(P_approx_GSP_zone_strip_2019$GSP_Rec_both_p)
+
+P_approx_GSP_zone_strip_2019$rainfall_class <- factor(P_approx_GSP_zone_strip_2019$rainfall_class, levels = c("low", "medium", "high"))
+
+P_approx_GSP_zone_strip_2019 %>%  
+  filter( GSP_Rec_both_p !=  "both" ) %>% 
+  ggplot(aes(x = rainfall_class, y = GM, fill = GSP_Rec_both_p)) +
+  geom_col(position = "dodge")+
+  theme_bw()+
+  labs(x = "rainfall class", y = "GM $/ha",
+       title = "P 2019",
+       subtitle = "Only for zones which the approx rec rate if different to the GSP  ")
   
 
 
 ```
 
 
-Plots of the 2019 data
+```{r 2019 GM N plots GSP vs approx, echo=FALSE, message=TRUE, warning=FALSE}
 
-```{plots of GM r rec rates vs GSP 2019, echo=FALSE, message=TRUE, warning=FALSE}
+ #All_zone_rates_2019  
+GM_t.test_details_rec_rates2019 <- All_zone_rates_2019 
+  ### remove all the zones / strips that are classed as other, ie they are not the GSP or the approx rec rate.
+unique(GM_t.test_details_rec_rates2019$GSP_Rec_both_n)
+GM_t.test_details_rec_rates2019$GSP_Rec_both_n <- as.character(GM_t.test_details_rec_rates2019$GSP_Rec_both_n)
+GM_t.test_details_rec_rates2019  <- GM_t.test_details_rec_rates2019 %>% 
+  mutate(GM = case_when(
+    GM < 0 ~ 0,
+    TRUE ~ GM
+  ))
+
+################ N Strips #####################################
+## only keep N strips that are either rec rate GSP or both
+N_approx_GSP_zone_strip_2019 <- GM_t.test_details_rec_rates2019 %>%  
+  filter(Strip_Type == "N Strip") %>% 
+  filter(GSP_Rec_both_n !=  "other")
+# str(N_approx_GSP_zone_strip)
+# View(N_approx_GSP_zone_strip)
+N_approx_GSP_zone_strip_2019$GSP_Rec_both_n <- as.character(N_approx_GSP_zone_strip_2019$GSP_Rec_both_n)
+#unique(N_approx_GSP_zone_strip$GSP_Rec_both_n)
+
+N_approx_GSP_zone_strip_2019$rainfall_class <- factor(N_approx_GSP_zone_strip_2019$rainfall_class, levels = c("low", "medium", "high"))
+
+N_approx_GSP_zone_strip_2019 %>%  
+  filter( GSP_Rec_both_n !=  "both" ) %>% 
+  ggplot(aes(x = rainfall_class, y = GM, fill = GSP_Rec_both_n)) +
+  geom_col(position = "dodge")+
+  theme_bw()+
+  labs(x = "rainfall class", y = "GM $/ha",
+       title = "N 2019",
+       subtitle = "Only for zones which the approx rec rate if different to the GSP  ")
+  
+
+
+```
+
+2020
+
+
+```{r 2020 GM P plots GSP vs approx, echo=FALSE, message=TRUE, warning=FALSE}
+
+ #All_zone_rates_2020  
+GM_t.test_details_rec_rates2020 <- All_zone_rates_2020 
+  ### remove all the zones / strips that are classed as other, ie they are not the GSP or the approx rec rate.
+#unique(GM_t.test_details_rec_rates2019$GSP_Rec_both_p)
+GM_t.test_details_rec_rates2020$GSP_Rec_both_p <- as.character(GM_t.test_details_rec_rates2020$GSP_Rec_both_p)
+GM_t.test_details_rec_rates2020  <- GM_t.test_details_rec_rates2020 %>% 
+  mutate(GM = case_when(
+    GM < 0 ~ 0,
+    TRUE ~ GM
+  ))
+
+################ P Strips #####################################
+## only keep P strips that are either rec rate GSP or both
+P_approx_GSP_zone_strip_2020 <- GM_t.test_details_rec_rates2020 %>%  
+  filter(Strip_Type == "P Strip") %>% 
+  filter(GSP_Rec_both_p !=  "other")
+#str(P_approx_GSP_zone_strip_2020)
+#View(P_approx_GSP_zone_strip_2020)
+P_approx_GSP_zone_strip_2020$GSP_Rec_both_p <- as.character(P_approx_GSP_zone_strip_2020$GSP_Rec_both_p)
+#unique(P_approx_GSP_zone_strip_2020$GSP_Rec_both_p)
+
+P_approx_GSP_zone_strip_2020$rainfall_class <- factor(P_approx_GSP_zone_strip_2020$rainfall_class, levels = c("low", "medium", "high"))
+
+P_approx_GSP_zone_strip_2020 %>%  
+  filter( GSP_Rec_both_p !=  "both" ) %>% 
+  ggplot(aes(x = rainfall_class, y = GM, fill = GSP_Rec_both_p)) +
+  geom_col(position = "dodge")+
+  theme_bw()+
+  labs(x = "rainfall class", y = "GM $/ha",
+       title = "P 2020",
+       subtitle = "Only for zones which the approx rec rate if different to the GSP  ")
+  
 
 
 ```
 
 
+```{r 2020 GM N plots GSP vs approx, echo=FALSE, message=TRUE, warning=FALSE}
 
-2020 data set
+ #All_zone_rates_2020  
+GM_t.test_details_rec_rates2020 <- All_zone_rates_2020 
+  ### remove all the zones / strips that are classed as other, ie they are not the GSP or the approx rec rate.
+unique(GM_t.test_details_rec_rates2020$GSP_Rec_both_n)
+GM_t.test_details_rec_rates2020$GSP_Rec_both_n <- as.character(GM_t.test_details_rec_rates2020$GSP_Rec_both_n)
+GM_t.test_details_rec_rates2020  <- GM_t.test_details_rec_rates2020 %>% 
+  mutate(GM = case_when(
+    GM < 0 ~ 0,
+    TRUE ~ GM
+  ))
 
-```{r stuff around GM respose for 2020 paddocks vs GSP, message=TRUE, warning=FALSE, include=FALSE}
+################ N Strips #####################################
+## only keep N strips that are either rec rate GSP or both
+N_approx_GSP_zone_strip_2020 <- GM_t.test_details_rec_rates2020 %>%  
+  filter(Strip_Type == "N Strip") %>% 
+  filter(GSP_Rec_both_n !=  "other")
+# str(N_approx_GSP_zone_strip)
+# View(N_approx_GSP_zone_strip)
+N_approx_GSP_zone_strip_2020$GSP_Rec_both_n <- as.character(N_approx_GSP_zone_strip_2020$GSP_Rec_both_n)
+#unique(N_approx_GSP_zone_strip$GSP_Rec_both_n)
 
+N_approx_GSP_zone_strip_2020$rainfall_class <- factor(N_approx_GSP_zone_strip_2020$rainfall_class, levels = c("low", "medium", "high"))
 
-
+N_approx_GSP_zone_strip_2020 %>%  
+  filter( GSP_Rec_both_n !=  "both" ) %>% 
+  ggplot(aes(x = rainfall_class, y = GM, fill = GSP_Rec_both_n)) +
+  geom_col(position = "dodge")+
+  theme_bw()+
+  labs(x = "rainfall class", y = "GM $/ha",
+       title = "N 2020",
+       subtitle = "Only for zones which the approx rec rate if different to the GSP  ")
+  
 
 
 ```
