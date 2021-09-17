@@ -373,34 +373,34 @@ t.test_details_rec_rates <- t.test_details_rec_rates %>%
 
 str(t.test_details_rec_rates)
 
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
-  mutate(critical_colwell = 4.6*( PBI^ (0.393)))
-## is colwell greater than critical colwell?
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
-  mutate(colwell_thershold = case_when(
-    Colwell > critical_colwell ~ "adequate",
-    Colwell < critical_colwell ~ "p_required")  )
+# t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+#   mutate(critical_colwell = 4.6*( PBI^ (0.393)))
+# ## is colwell greater than critical colwell?
+# t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+#   mutate(colwell_thershold = case_when(
+#     Colwell > critical_colwell ~ "adequate",
+#     Colwell < critical_colwell ~ "p_required")  )
 
 ## if p is required how much extra colwell p is needed to get to critical thershold?
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
-  mutate(to_reach_col_thershold = case_when(
-    colwell_thershold == "p_required" ~ critical_colwell - Colwell))
-
-## what is the recomm P rate?
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
-  mutate(p_rec_jax = case_when(
-    colwell_thershold == "p_required" ~ ((0.0019*PBI+2.146)*to_reach_col_thershold),
-    colwell_thershold == "adequate" ~ 5
-    ))
-## clean up extra clms
-
-names(t.test_details_rec_rates)
-
-t.test_details_rec_rates <- t.test_details_rec_rates %>%
-  dplyr::select(-"length_zoneID",
-                - critical_colwell,
-                - colwell_thershold,
-                - to_reach_col_thershold)
+# t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+#   mutate(to_reach_col_thershold = case_when(
+#     colwell_thershold == "p_required" ~ critical_colwell - Colwell))
+# 
+# ## what is the recomm P rate?
+# t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+#   mutate(p_rec_jax = case_when(
+#     colwell_thershold == "p_required" ~ ((0.0019*PBI+2.146)*to_reach_col_thershold),
+#     colwell_thershold == "adequate" ~ 5
+#     ))
+# ## clean up extra clms
+# 
+# names(t.test_details_rec_rates)
+# 
+# t.test_details_rec_rates <- t.test_details_rec_rates %>%
+#   dplyr::select(-"length_zoneID",
+#                 - critical_colwell,
+#                 - colwell_thershold,
+#                 - to_reach_col_thershold)
 
 
 ###################################################################################################################################

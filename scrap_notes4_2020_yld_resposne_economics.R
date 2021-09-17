@@ -10,22 +10,22 @@ library(readxl)
 #########################################################################################################################################################
 ### 1. bring in the data
 t.test_details_rec_rates_20 <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/for_econmics/t.test_details_rec_rates_2020.csv")
-
+# t.test_details_rec_rates_20 <- t.test_details_rec_rates
 #########################################################################################################################################################
 ### 2. remove the alt GSP
 ### all of this analysis will be without the Alt GSP so I will remove it
-str(t.test_details_rec_rates_20)
+#str(t.test_details_rec_rates_20)
 
-unique(t.test_details_rec_rates_20$GSP)
+#unique(t.test_details_rec_rates_20$GSP)
 t.test_details_rec_rates_20$GSP <- as.character(t.test_details_rec_rates_20$GSP)
 
 t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% 
   filter(GSP == "GSP" | is.na(GSP))
-unique(t.test_details_rec_rates_20$GSP)
+#unique(t.test_details_rec_rates_20$GSP)
 ### difference between p rec and p applied
 
 t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% 
-  mutate(diff_p_rec_applied = abs(Total_sum_P_content- p_rec_jax))
+  mutate(diff_p_rec_applied = abs(Total_sum_P_content- p_rec))
 closest_match_p <-t.test_details_rec_rates_20 %>%
   group_by(Zone_ID) %>% 
   summarise(closest_match_p = min(diff_p_rec_applied))
@@ -115,7 +115,7 @@ PBI,
 p_rec,
 maxN,
 Rec_N_jax,
-p_rec_jax,
+#p_rec_jax,
  
 #Tier 3
 Rate,
@@ -209,7 +209,7 @@ t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>%
                 -Cost_P_N_dollar_ha,
                 -total_cost  )
 
-write.csv(t.test_details_rec_rates_20, "W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/for_econmics/GM_t.test_details_rec_rates2020.csv")
+#write.csv(t.test_details_rec_rates_20, "W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/for_econmics/GM_t.test_details_rec_rates2020.csv")
 
 
 

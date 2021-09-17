@@ -10,7 +10,7 @@ library(readr)
 ## getting the yield difference and GM difference between GSP and Approx
 
 all_strips2020 <- st_read("W:/value_soil_testing_prj/Yield_data/2020/All_Strips_2020_wgs84.shp")
-names(all_strips2020)
+#names(all_strips2020)
 all_strips2020 <- all_strips2020 %>%
   dplyr::select(Paddock_ID, geometry, 
                 Organisation = organisati,
@@ -19,7 +19,7 @@ all_strips2020 <- all_strips2020 %>%
                  Paddock_tested = paddock,
                 Status) 
 ### remove the paddocks with no reports
-unique(all_strips2020$Status)
+#unique(all_strips2020$Status)
 
 all_strips2020 <- all_strips2020 %>%
   dplyr::filter(Status != "Excluded from Analysis")
@@ -53,8 +53,8 @@ zone2020_GRDC_bound <- zone2020_GRDC_bound %>%
                      length_zoneID == 7 ~ substr(Zone_ID, start = 1, stop = 6)))
 zone2020_GRDC_bound$Paddock_ID <- as.double(zone2020_GRDC_bound$Paddock_ID)
 
-str(zone2020_GRDC_bound)
-str(all_strips2020_centroid_df)
+# str(zone2020_GRDC_bound)
+# str(all_strips2020_centroid_df)
 
 all_strips2020_centroid_df <- left_join(all_strips2020_centroid_df, zone2020_GRDC_bound)
 all_strips2020_centroid_df <- all_strips2020_centroid_df %>% 
@@ -64,7 +64,7 @@ all_strips2020_centroid_df <- all_strips2020_centroid_df %>%
       av_rain >500 ~ "high",
       TRUE ~ "medium"))
 
-names(all_strips2020_centroid_df)
+#names(all_strips2020_centroid_df)
 all_strips2020_centroid_df <- all_strips2020_centroid_df %>% 
   dplyr::select( Paddock_ID,
                  Organisation,
@@ -76,7 +76,7 @@ all_strips2020_centroid_df <- all_strips2020_centroid_df %>%
 ### oops I need the rates from the fert df
 
 fertiliser_applied2020 <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/step2_fert_app_all_steps.csv")
-str(fertiliser_applied2020)
+#str(fertiliser_applied2020)
 
 fert_2020 <- fertiliser_applied2020 %>% 
   dplyr::select(Paddock_ID, Rate,GSP,Strip_Type,
@@ -84,14 +84,14 @@ fert_2020 <- fertiliser_applied2020 %>%
                 Total_sum_P_content) 
 
 rm(fertiliser_applied2020, zone2020_GRDC_bound)
-str(all_strips2020_centroid_df)
-str(fert_2020)
+#str(all_strips2020_centroid_df)
+#str(fert_2020)
 ## add it to the other data
 
 details_2020 <- left_join(fert_2020, all_strips2020_centroid_df)
 rm(fert_2020,all_strips2020_centroid_df )
 
-names(details_2020)
+#names(details_2020)
 
 
 
@@ -133,7 +133,7 @@ details_2020 <- details_2020 %>%
 
 set1_2020 <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/processing/r_outputs/merged_comparision_output/t_test_merged_3a.csv")
 
-names(set1_2020)
+#names(set1_2020)
 set1_2020 <- set1_2020 %>% 
   dplyr::select(Zone_ID,
                 Rates = Rate,
@@ -162,8 +162,8 @@ t.test_2020 <- t.test_2020 %>%
 
 ## I want to join details_2019 to t.test 
 
-str(t.test_2020)
-str(details_2020)
+# str(t.test_2020)
+# str(details_2020)
 
 t.test_2020 <- t.test_2020 %>% 
   dplyr::mutate(for_join = paste0(Paddock_ID, Strip_Type, Rates))
@@ -213,7 +213,7 @@ t.test2020_details <- t.test2020_details %>%
 
 
 recom_rateDB2020 <- read_excel( "W:/value_soil_testing_prj/data_base/downloaded_sep2021/GRDC 2020 Paddock Database_SA_VIC_June11 2021.xlsx")
-str(recom_rateDB2020)
+#str(recom_rateDB2020)
 # select only a few clms with recommedation 
 recom_rateDB2020 <- recom_rateDB2020 %>% 
   dplyr::select(Zone_ID =    `Paddock code` ,
@@ -269,8 +269,8 @@ recom_rateDB2020$Paddock_ID <- as.double(recom_rateDB2020$Paddock_ID)
 rm(details_2020, t.test_2020)
 
 ### join the t.test data to the recom rates
-str(recom_rateDB2020)
-str(t.test2020_details)
+# str(recom_rateDB2020)
+# str(t.test2020_details)
 recom_rateDB2020$Zone_ID <- as.double(recom_rateDB2020$Zone_ID)
 t.test_details_rec_rates <- left_join(t.test2020_details, recom_rateDB2020)
 rm(recom_rateDB2020, t.test2020_details)
@@ -284,36 +284,36 @@ t.test_details_rec_rates <- t.test_details_rec_rates %>%
     rainfall_class == "high" & Total_N <= 240 ~ ((240 -Total_N)/0.5),
     TRUE                           ~ 0  ))
 
-str(t.test_details_rec_rates)
+#str(t.test_details_rec_rates)
 
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
-  mutate(critical_colwell = 4.6*( PBI^ (0.393)))
-## is colwell greater than critical colwell?
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
-  mutate(colwell_thershold = case_when(
-    Colwell > critical_colwell ~ "adequate",
-    Colwell < critical_colwell ~ "p_required")  )
-
-## if p is required how much extra colwell p is needed to get to critical thershold?
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
-  mutate(to_reach_col_thershold = case_when(
-    colwell_thershold == "p_required" ~ critical_colwell - Colwell))
-
-## what is the recomm P rate?
-t.test_details_rec_rates <- t.test_details_rec_rates %>% 
-  mutate(p_rec_jax = case_when(
-    colwell_thershold == "p_required" ~ ((0.0019*PBI+2.146)*to_reach_col_thershold),
-    colwell_thershold == "adequate" ~ 5
-    ))
-## clean up extra clms
-
-names(t.test_details_rec_rates)
-
-t.test_details_rec_rates <- t.test_details_rec_rates %>%
-  dplyr::select(-"length_zoneID",
-                - critical_colwell,
-                - colwell_thershold,
-                - to_reach_col_thershold)
+# t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+#   mutate(critical_colwell = 4.6*( PBI^ (0.393)))
+# ## is colwell greater than critical colwell?
+# t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+#   mutate(colwell_thershold = case_when(
+#     Colwell > critical_colwell ~ "adequate",
+#     Colwell < critical_colwell ~ "p_required")  )
+# 
+# ## if p is required how much extra colwell p is needed to get to critical thershold?
+# t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+#   mutate(to_reach_col_thershold = case_when(
+#     colwell_thershold == "p_required" ~ critical_colwell - Colwell))
+# 
+# ## what is the recomm P rate?
+# t.test_details_rec_rates <- t.test_details_rec_rates %>% 
+#   mutate(p_rec_jax = case_when(
+#     colwell_thershold == "p_required" ~ ((0.0019*PBI+2.146)*to_reach_col_thershold),
+#     colwell_thershold == "adequate" ~ 5
+#     ))
+# ## clean up extra clms
+# 
+# names(t.test_details_rec_rates)
+# 
+# t.test_details_rec_rates <- t.test_details_rec_rates %>%
+#   dplyr::select(-"length_zoneID",
+#                 - critical_colwell,
+#                 - colwell_thershold,
+#                 - to_reach_col_thershold)
 
 
 ###################################################################################################################################

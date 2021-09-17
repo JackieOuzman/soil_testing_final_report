@@ -16,7 +16,7 @@ str(t.test_details_rec_rates)
 ### difference between p rec and p applied
 
 t.test_details_rec_rates <- t.test_details_rec_rates %>% 
-  mutate(diff_p_rec_applied = abs(Total_sum_P_content- p_rec_jax))
+  mutate(diff_p_rec_applied = abs(Total_sum_P_content- p_rec))
 closest_match_p <-t.test_details_rec_rates %>%
   group_by(Zone_ID) %>% 
   summarise(closest_match_p = min(diff_p_rec_applied))
@@ -48,7 +48,7 @@ t.test_details_rec_rates <- t.test_details_rec_rates %>%
 names(t.test_details_rec_rates)
 
 t.test_details_rec_rates <- t.test_details_rec_rates %>% 
-  mutate(diff_n_rec_applied = abs(Total_sum_N_content- Rec_N_jax))
+  mutate(diff_n_rec_applied = abs(Total_sum_N_content- maxN))
 
 closest_match_n <-t.test_details_rec_rates %>%
   group_by(Zone_ID) %>% 
@@ -105,8 +105,8 @@ DGT,
 PBI,
 p_rec,
 maxN,
-Rec_N_jax,
-p_rec_jax,
+#Rec_N_jax,
+#p_rec_jax,
  
 #Tier 3
 Rate,
@@ -139,7 +139,7 @@ GSP_Rec_both_n
 # this assumes that all yield is in t /ha 
 # all crops are wheat
 # the 5 year wheat average is $286 and is same for all sites.
-names(df)
+
 t.test_details_rec_rates <- t.test_details_rec_rates %>% mutate(grain_income = Yld * 286)
 
 ##############################################################################
