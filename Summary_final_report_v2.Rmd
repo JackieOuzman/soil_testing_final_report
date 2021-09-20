@@ -36,272 +36,6 @@ library(gridExtra)
 
 ```
 
-## Number of N and P trials for 2020 -2021  season 
-
-CSIRO team have been supplied with spatial data for the location of strip trials.
-Along with this information we have details on the type of trial (either N or P) and the fertilisers used.
-
-
-
-Note that a few paddocks have both N and P trials.
-
-
-
-Most paddocks have two zone, but some have just one and some have multiple zone.
-This is filtering data out that is marked excluded from analysis and ensured I am only keeping unique Zone ID.
-
-```{r zone shapefile 2020, message=TRUE, warning=FALSE, include=FALSE}
-zone2020 <- st_read("W:/value_soil_testing_prj/Yield_data/2020/All_Zones_2020_wgs84.shp")
-
-
-zone2020_df <- data.frame(zone2020)
-zone2020_1 <- zone2020_df %>% dplyr::select(-geometry)
-
-
-## some paddocks are excluded from the analysis
-zone2020_df <- zone2020_1 %>% 
-  filter(Status != "Excluded from Analysis")
-#just keep a few clms
-names(zone2020_df)
-zone2020_df <- zone2020_df %>% 
-  dplyr::select(Zone_ID,
-                Strip_Type,
-                Status,
-                organisati,
-                contact, 
-                farmer,
-                paddock)
-rm(zone2020, zone2020_1)
-
-
-zone2020_unique <- zone2020_df %>% 
-  distinct(Zone_ID, Strip_Type, .keep_all = TRUE)
-
-#how many zones with N / P strips?
-zone2020_count <- zone2020_unique %>% 
-  distinct(Zone_ID, .keep_all = TRUE) %>%
-  group_by(Strip_Type) %>% 
-  summarise(count_zones_by_type = n())
-
-
-
-```
-
-2020 season. Zone per fertilsier strip type (using zone shapefile).
-
-```{r  numb strip trials, echo=FALSE, message=TRUE, warning=FALSE}
-
-zone2020_count
-
-```
-
-2020 season.Paddocks per fertilsier strip type.
-
-```{r zone 2020 per paddock, message=TRUE, warning=FALSE, include=FALSE}
-#how many paddocks with N / P strips?
-
-names(zone2020_unique)
-#I cant just select paddock names beacuse some have the same name house and creek
-
-zone_paddocks <- zone2020_unique %>%
-  dplyr::mutate(paddock_farmer = paste0(paddock, "_", farmer)) %>% 
-  dplyr::distinct(paddock_farmer, Strip_Type, .keep_all = TRUE)
-  
-zone_paddocks 
- 
-count_paddock <- zone_paddocks %>% 
-  group_by(Strip_Type) %>% 
-  summarise(count_paddocks_by_type = n())
-
-```
-
-
-```{r  numb paddocks, echo=FALSE, message=TRUE, warning=FALSE}
-
-count_paddock
-
-
-```
-
-
-2020 season. How many growers?
-
-```{r zone 2020 per farmers, message=TRUE, warning=FALSE, include=FALSE}
-
-farmers_dist <- zone2020_unique %>% 
-  dplyr::distinct(farmer,Strip_Type, .keep_all = TRUE)
-
-farmers_count_type <- farmers_dist %>% 
-    group_by(Strip_Type) %>% 
-  summarise(count_farmers_by_type = n())
-
-farmers_count <- farmers_dist %>% 
-    summarise(count_farmers_by_type = n())
-
-
-
-```
-
-```{r number of farmers 2020, echo=FALSE, message=TRUE, warning=FALSE}
-farmers_count
-```
-
-
-I can run the same analysis with the strip files but the numbers are slightly different because of the trials that have N and P.
-So I will use the zone shapefile as a basis.
-The code is here but I am not displaying the output.
-
-
-```{r load_data1, message=TRUE, warning=FALSE, include=FALSE}
-
-#note that this script runs off the shapefile and has on intermediate steps
-
-
-spatial_data_no_yld <- st_read("W:/value_soil_testing_prj/Yield_data/2020/All_Strips_2020_wgs84.shp")
-
-spatial <-  st_as_sf(spatial_data_no_yld, coords = c("X", "Y"), crs = 4326) #this is for map in later code chuck
-
-spatial_data_no_yld_df <- data.frame(spatial_data_no_yld)
-spatial_data_no_yld_df_1 <- spatial_data_no_yld_df %>% dplyr::select(-geometry)
-
-## some paddocks are excluded from the analysis
-spatial_data_no_yld_df <- spatial_data_no_yld_df_1 %>% 
-   filter(Status != "Excluded from Analysis")
-
-spatial_data_no_yld_df <- spatial_data_no_yld_df %>% 
-  dplyr::mutate(ID_Rate_GSP_type = paste0(Paddock_ID, "-", Rate, "-", GSP,"-",Strip_Type ),
-         ID_trial_type = paste0(Paddock_ID, "-",Strip_Type))
-
-spatial_data_no_yld_df <-spatial_data_no_yld_df %>% 
-  dplyr::mutate(Alt_GSP = ifelse(stringr::str_detect(GSP_list, "Alt GSP"), "Alt_GPS", "No_Alt_GSP"))
-
-rm(spatial_data_no_yld_df_1)
-
-strips_distinct_paddockID <- spatial_data_no_yld_df %>% 
-  distinct(Paddock_ID, Strip_Type, .keep_all = TRUE)
-
-```
-
-```{r plot numb trials, message=TRUE, warning=FALSE, include=FALSE}
-plot1 <-
-  dplyr::distinct(strips_distinct_paddockID, Paddock_ID ,Strip_Type, .keep_all = TRUE) %>%
-  dplyr::select(Paddock_ID, Strip_Type, Alt_GSP) %>%
-  ggplot(aes(Strip_Type)) +
-  geom_bar() +
-  theme_bw() +
-  geom_text(aes(y = ((..count..)), label = ((..count..))), stat = "count", vjust = -0.25) +
-  labs(
-    title = "Number of P and N trials. 2020 to 2021 season",
-    y = "Count",
-    x = "Type of trial",
-    subtitle = paste0("Total number of paddocks = ", count(
-      distinct(spatial_data_no_yld_df, ID_trial_type)
-    ))
-  )
-plot1
-
-
-```
-
-
-
-
-## Number of N and P trials for 2019 -2020  season 
-
-```{r zone shapefile 2019, message=TRUE, warning=FALSE, include=FALSE}
-zone2019 <- st_read("W:/value_soil_testing_prj/Yield_data/finished/GIS_Results/All_Zones_2019_wgs84.shp")
-
-
-zone2019_df <- data.frame(zone2019)
-zone2019_1 <- zone2019_df %>% dplyr::select(-geometry)
-
-
-## some paddocks are excluded from the analysis
-
-#just keep a few clms
-
-zone2019_df <- zone2019_1 %>% 
-  dplyr::select(Zone_ID,
-                Strip_Type, # I need to add this in ??
-                #Status,
-                organisati,
-                contact, 
-                farmer,
-                paddock)
-rm(zone2019, zone2019_1)
-
-
-zone2019_df_unique <- zone2019_df %>% 
-  distinct(Zone_ID, Strip_Type, .keep_all = TRUE)
-
-#how many zones with N / P strips?
-zone2019_count <- zone2019_df_unique %>% 
-  distinct(Zone_ID, .keep_all = TRUE) %>%
-  group_by(Strip_Type) %>% 
-  summarise(count_zones_by_type = n())
-
-
-
-```
-
-2019 season. Zone per fertilsier strip type (using zone shapefile).
-
-```{r  numb strip trials 2019, echo=FALSE, message=TRUE, warning=FALSE}
-
-zone2019_count
-
-```
-
-2019 season.Paddocks per fertilsier strip type.
-
-```{r zone 2019 per paddock, message=TRUE, warning=FALSE, include=FALSE}
-#how many paddocks with N / P strips?
-
-
-zone_paddocks2019 <- zone2019_df_unique %>%
-  dplyr::mutate(paddock_farmer = paste0(paddock, "_", farmer)) %>% 
-  dplyr::distinct(paddock_farmer, Strip_Type, .keep_all = TRUE)
-
-paddocks2019 <-  zone_paddocks2019 %>% 
-  group_by(Strip_Type) %>% 
-  summarise(count_paddocks_by_type = n())
-
-
-```
-
-
-```{r  numb paddocks 2019, echo=FALSE, message=TRUE, warning=FALSE}
-
-paddocks2019
-
-```
-
-
-2019 season. How many growers?
-
-```{r zone 2019 per farmers, message=TRUE, warning=FALSE, include=FALSE}
-
-
-farmers_dist2019 <- zone2019_df_unique %>% 
-  dplyr::distinct(farmer,Strip_Type, .keep_all = TRUE)
-
-farmers_count_type2019 <- farmers_dist2019 %>% 
-  group_by(Strip_Type) %>% 
-  summarise(count_farmers_by_type = n())
-
-farmers_count2019 <- farmers_dist2019 %>% 
-  summarise(count_farmers = n())
-
-
-
-```
-
-```{r number of farmers 2019, echo=FALSE, message=TRUE, warning=FALSE}
-
-farmers_count_type2019
-farmers_count2019
-```
-
 
 
 I have spent a lot of time getting these two df is good shape.
@@ -1686,6 +1420,173 @@ All_zone_rates_2019 <-neat_t.test_details_rec_rates
 ```
 
 
+
+
+# Number of N and P trials for 2020 -2021  season 
+
+CSIRO team have been supplied with spatial data for the location of strip trials.
+Along with this information we have details on the type of trial (either N or P) and the fertilisers used.
+
+
+### 2019 P zone  
+
+```{r  numb 2019 P zone, echo=FALSE, message=TRUE, warning=FALSE}
+
+
+zone_2019_P <- All_zone_rates_2019 %>% 
+  filter(Strip_Type == "P Strip") %>% 
+  distinct(Zone_ID , .keep_all = TRUE)
+count(zone_2019_P)
+```
+
+### 2019 N zone  
+
+```{r  numb 2019 N zone, echo=FALSE, message=TRUE, warning=FALSE}
+
+zone_2019_N <- All_zone_rates_2019 %>% 
+  filter(Strip_Type == "N Strip") %>% 
+  distinct(Zone_ID , .keep_all = TRUE)
+count(zone_2019_N)
+
+```
+
+### 2019 P and N zone  
+
+```{r  numb 2019 N P zone, echo=FALSE, message=TRUE, warning=FALSE}
+total2019 <- (count(zone_2019_P)) + (count(zone_2019_N))
+total2019
+```
+
+### 2020 P zone  
+
+```{r  numb 2020 P zone, echo=FALSE, message=TRUE, warning=FALSE}
+zone_2020_P <- All_zone_rates_2020 %>% 
+  filter(Strip_Type == "P Strip") %>% 
+  distinct(Zone_ID , .keep_all = TRUE)
+count(zone_2020_P)
+```
+
+### 2020 N zone  
+
+```{r  numb 2020 N zone, echo=FALSE, message=TRUE, warning=FALSE}
+zone_2020_N <- All_zone_rates_2020 %>% 
+  filter(Strip_Type == "N Strip") %>% 
+  distinct(Zone_ID , .keep_all = TRUE)
+count(zone_2020_N)
+```
+
+### 2020 P and N zone  
+
+```{r  numb 2020 N P zone, echo=FALSE, message=TRUE, warning=FALSE}
+
+total2020 <- (count(zone_2020_P)) + (count(zone_2020_N))
+total2020
+
+```
+
+### 2019 P paddock 
+
+```{r  numb 2019 P paddock, echo=FALSE, message=TRUE, warning=FALSE}
+paddocks_2019_P <- All_zone_rates_2019 %>% 
+  filter(Strip_Type == "P Strip") %>% 
+  distinct(Paddock_ID , .keep_all = TRUE)
+count(paddocks_2019_P)
+```
+
+### 2019 N paddock 
+
+```{r  numb 2019 N paddock, echo=FALSE, message=TRUE, warning=FALSE}
+paddocks_2019_N <- All_zone_rates_2019 %>% 
+  filter(Strip_Type == "N Strip") %>% 
+  distinct(Paddock_ID , .keep_all = TRUE)
+count(paddocks_2019_N)
+```
+
+### 2019 P and N paddock 
+
+```{r  numb 2019 P and N paddock, echo=FALSE, message=TRUE, warning=FALSE}
+total2019 <- (count(paddocks_2019_P)) + (count(paddocks_2019_N))
+total2019
+```
+
+### 2020 P paddock 
+
+```{r  numb 2020 P paddock, echo=FALSE, message=TRUE, warning=FALSE}
+paddocks_2020_P <- All_zone_rates_2020 %>% 
+  filter(Strip_Type == "P Strip") %>% 
+  distinct(Paddock_ID , .keep_all = TRUE)
+count(paddocks_2020_P)
+```
+### 2020 N paddock 
+
+```{r  numb 2020 N paddock, echo=FALSE, message=TRUE, warning=FALSE}
+paddocks_2020_N <- All_zone_rates_2020 %>% 
+  filter(Strip_Type == "N Strip") %>% 
+  distinct(Paddock_ID , .keep_all = TRUE)
+count(paddocks_2020_N)
+```
+
+### 2020 P and N paddock 
+
+```{r  numb 2020 N and P paddock, echo=FALSE, message=TRUE, warning=FALSE}
+total2020 <- (count(paddocks_2020_P)) + (count(paddocks_2020_N))
+total2020
+
+```
+### 2019 P farmers
+
+```{r  numb 2019 P farmers, echo=FALSE, message=TRUE, warning=FALSE}
+farmers_2019_P <- All_zone_rates_2019 %>% 
+  filter(Strip_Type == "P Strip") %>% 
+  distinct(Farmer , .keep_all = TRUE)
+count(farmers_2019_P)
+```
+### 2019 N farmers
+
+```{r  numb 2019 N farmers, echo=FALSE, message=TRUE, warning=FALSE}
+farmers_2019_N <- All_zone_rates_2019 %>% 
+  filter(Strip_Type == "N Strip") %>% 
+  distinct(Farmer , .keep_all = TRUE)
+count(farmers_2019_N)
+```
+### 2019 N And P farmers
+
+```{r  numb 2019 N P farmers, echo=FALSE, message=TRUE, warning=FALSE}
+total2019 <- (count(farmers_2019_P)) + (count(farmers_2019_N))
+total2019
+```
+### 2020 P farmers
+
+```{r  numb 2020 P farmers, echo=FALSE, message=TRUE, warning=FALSE}
+farmers_2020_P <- All_zone_rates_2020 %>% 
+  filter(Strip_Type == "P Strip") %>% 
+  distinct(Farmer , .keep_all = TRUE)
+count(farmers_2020_P)
+```
+### 2020 N farmers
+
+```{r  numb 2020 N farmers, echo=FALSE, message=TRUE, warning=FALSE}
+farmers_2020_N <- All_zone_rates_2020 %>% 
+  filter(Strip_Type == "N Strip") %>% 
+  distinct(Farmer , .keep_all = TRUE)
+count(farmers_2020_N)
+```
+
+### 2020 N and P farmers
+
+```{r  numb 2020 N Pfarmers, echo=FALSE, message=TRUE, warning=FALSE}
+total2020 <- (count(farmers_2020_P)) + (count(farmers_2020_N))
+total2020
+```
+
+
+
+
+
+
+
+
+
 ### How many strips?
 ```{r how many strips 2019 and 2020, echo=FALSE, message=TRUE, warning=FALSE}
 
@@ -2044,6 +1945,7 @@ table2_2019_P <-rec_rate_vs_GSP_2019_P %>%  filter(Strip_Type == "P Strip") %>%
 
 
 ## make into one table
+#table1_2019_P
 table1_2019_P <- table1_2019_P %>% 
   rename(detail = yld_repsonse_likely_to_p, 
          count= count_p_over5)
@@ -2362,11 +2264,11 @@ How many paddocks have a N rec rate in zone 1 vs zone 2 that is higher than 5 kg
 P_zones_2019 <- All_zone_rates_2019 %>% 
   filter(Strip_Type == "P Strip") %>% 
   distinct(Zone_ID, .keep_all = TRUE) %>% 
-  dplyr::select(Paddock_ID:maxN, rainfall_class)
+  dplyr::select(Paddock_ID:maxN)
 
 
 # for each paddocks what is the max and min P rec (doesnt matter how many zones)
-Zone_In_Paddocks_P_2019 <- P_zones_2019 %>%  group_by(Paddock_ID, rainfall_class) %>% 
+Zone_In_Paddocks_P_2019 <- P_zones_2019 %>%  group_by(Paddock_ID) %>% 
   summarise(count_zone = n(),
             max_P_rec = max(p_rec, na.rm = FALSE),
             min_P_rec = min(p_rec, na.rm = FALSE))
@@ -2384,11 +2286,12 @@ Zone_In_Paddocks_P_2019 <- Zone_In_Paddocks_P_2019 %>%
 Zone_In_Paddocks_P_2019 %>%  group_by(count_zone) %>% 
   summarise(sum_of_when_diff = sum(count_of_diff, na.rm = TRUE))
 
+
+
 Zone_In_Paddocks_P_2019 %>%  
   summarise(sum_of_when_diff = sum(count_of_diff, na.rm = TRUE),
             count =  n(),
-            percent_zone_with_diff_rec_P = (sum_of_when_diff/count) *100)
-
+            percent_zone_with_diff_rec_N = (sum_of_when_diff/count) *100)
 
 ```
 
@@ -2800,11 +2703,251 @@ case_study2_N
 ### Case study 2 with an average across the zones
 
 ```{r 2020 case study 2 av zones, echo=FALSE, message=TRUE, warning=FALSE}
+case_study2_N
 case_study2_N %>%  group_by(Total_sum_N_content) %>% 
   summarise(av_yld_zone = mean(Yld, na.rm = TRUE),
             av_GM_zone = mean(GM, na.rm = TRUE))
             
 ```
+
+
+### what is the average for the approx rec rate and is this close to the GSP?
+
+### 2020 N rates
+
+```{r 2020 approx rec rates and close to GSP, echo=FALSE, message=TRUE, warning=FALSE}
+
+# str(All_zone_rates_2020)
+# unique(All_zone_rates_2020$rec_rate_approx_n)
+# ## some checks
+# All_zone_rates_2020 %>% 
+#   filter(Strip_Type == "N Strip") %>% 
+#   distinct(Zone_ID , .keep_all = TRUE)%>% 
+#   summarise(count = n()) #73 N strip
+# 
+# All_zone_rates_2020 %>% 
+#   filter(Strip_Type == "N Strip") %>% 
+#   filter(GSP == "GSP") %>% 
+#   distinct(Zone_ID , .keep_all = TRUE)%>% 
+#   summarise(count = n()) #73 N strip #72 N strips (one zone doesnt have a GSP)
+# 
+# All_zone_rates_2020 %>% 
+#   filter(Strip_Type == "N Strip") %>% 
+#   filter(rec_rate_approx_n == "approx_rec_rate") %>% 
+#   distinct(Zone_ID , .keep_all = TRUE)%>% 
+#   summarise(count = n()) #73 N strip #72 N strips (one zone doesnt have a approx_rec_rate)
+
+#####################################################################
+## what is the N contnet of the GSP?
+N_2020_GSP <- All_zone_rates_2020 %>%
+  filter(Strip_Type == "N Strip") %>% 
+  filter(GSP == "GSP") %>% 
+  #filter(rec_rate_approx_n == "approx_rec_rate") %>%
+  dplyr::select(Paddock_ID, 
+                Zone_ID, 
+                Total_N,
+                #Colwell,
+                #DGT,
+                #PBI,
+                Rec_N_jax,
+                #p_rec_jax,
+                GSP,
+                Total_sum_N_content,
+                #Total_sum_P_content,
+                rainfall_class,
+                rec_rate_approx_n
+                
+  ) %>%
+  distinct(Zone_ID, .keep_all = TRUE)
+
+#count(N_2020_GSP)
+N_2020_GSP$rainfall_class <- factor(N_2020_GSP$rainfall_class, 
+                                                   levels = c("low", "medium", "high"))
+
+N_2020_GSP <- N_2020_GSP %>% 
+  dplyr::select(Zone_ID, rainfall_class,
+                n_content_GSP = Total_sum_N_content)
+
+
+#####################################################################
+## what is the N contnet of the rec rate?
+N_2020_approx_rate <- All_zone_rates_2020 %>%
+  filter(Strip_Type == "N Strip") %>% 
+  filter(rec_rate_approx_n == "approx_rec_rate") %>% 
+    dplyr::select(Paddock_ID, 
+                Zone_ID, 
+                Total_N,
+                #Colwell,
+                #DGT,
+                #PBI,
+                Rec_N_jax,
+                #p_rec_jax,
+                GSP,
+                Total_sum_N_content,
+                #Total_sum_P_content,
+                rainfall_class,
+                rec_rate_approx_n
+                
+  ) %>%
+  distinct(Zone_ID, .keep_all = TRUE)
+
+#count(N_2020_approx_rate)
+
+N_2020_approx_rate$rainfall_class <- factor(N_2020_approx_rate$rainfall_class, 
+                                    levels = c("low", "medium", "high"))
+#str(N_2020_approx_rate)
+N_2020_approx_rate <- N_2020_approx_rate %>% 
+  dplyr::select(Zone_ID, rainfall_class,
+                n_content_rec_rate = Total_sum_N_content)
+
+## what is the approx recom rate? what is the approx GSP
+
+#####################################################################
+##Join the two df togther
+# str(N_2020_approx_rate)
+# str(N_2020_GSP)
+
+N_2020_approx_rate_GSP <- full_join(N_2020_approx_rate, N_2020_GSP)
+
+#str(N_2020_approx_rate_GSP)
+
+N_2020_approx_rate_GSP  %>%  group_by(rainfall_class) %>% 
+  summarise(av_GPS_rate = mean(n_content_GSP, na.rm = TRUE),
+            av_approx_rate = mean(n_content_rec_rate, na.rm = TRUE))
+
+N_2020_approx_rate_GSP  <- N_2020_approx_rate_GSP  %>% 
+  dplyr::mutate(difference = abs(n_content_GSP - n_content_rec_rate) )
+   
+N_2020_approx_rate_GSP  <- N_2020_approx_rate_GSP  %>% 
+  dplyr::mutate(close = case_when(
+    difference <= 10 ~ "close",
+    TRUE ~ "not_close"
+  ))
+
+N_2020_approx_rate_GSP %>%  group_by(rainfall_class,close) %>% 
+  summarise(count = n(),
+            percentage = count )
+
+```
+
+### 2020 P rates
+
+```{r 2020 approx rec rates and close to GSP P, echo=FALSE, message=TRUE, warning=FALSE}
+
+# str(All_zone_rates_2020)
+# unique(All_zone_rates_2020$rec_rate_approx_n)
+# ## some checks
+# All_zone_rates_2020 %>% 
+#   filter(Strip_Type == "P Strip") %>% 
+#   distinct(Zone_ID , .keep_all = TRUE)%>% 
+#   summarise(count = n()) #73 N strip
+# 
+# All_zone_rates_2020 %>% 
+#   filter(Strip_Type == "P Strip") %>% 
+#   filter(GSP == "GSP") %>% 
+#   distinct(Zone_ID , .keep_all = TRUE)%>% 
+#   summarise(count = n()) #73 P strip #72 N strips (one zone doesnt have a GSP)
+# 
+# All_zone_rates_2020 %>% 
+#   filter(Strip_Type == "N Strip") %>% 
+#   filter(rec_rate_approx_n == "approx_rec_rate") %>% 
+#   distinct(Zone_ID , .keep_all = TRUE)%>% 
+#   summarise(count = n()) #73 N strip #72 N strips (one zone doesnt have a approx_rec_rate)
+
+#####################################################################
+## what is the N contnet of the GSP?
+P_2020_GSP <- All_zone_rates_2020 %>%
+  filter(Strip_Type == "P Strip") %>% 
+  filter(GSP == "GSP") %>% 
+  #filter(rec_rate_approx_n == "approx_rec_rate") %>%
+  dplyr::select(Paddock_ID, 
+                Zone_ID, 
+                Total_N,
+                #Colwell,
+                #DGT,
+                #PBI,
+                Rec_N_jax,
+                #p_rec_jax,
+                GSP,
+                #Total_sum_N_content,
+                Total_sum_P_content,
+                rainfall_class,
+                rec_rate_approx_n
+                
+  ) %>%
+  distinct(Zone_ID, .keep_all = TRUE)
+
+#count(N_2020_GSP)
+P_2020_GSP$rainfall_class <- factor(P_2020_GSP$rainfall_class, 
+                                                   levels = c("low", "medium", "high"))
+
+P_2020_GSP <- P_2020_GSP %>% 
+  dplyr::select(Zone_ID, rainfall_class,
+                p_content_GSP = Total_sum_P_content)
+
+
+#####################################################################
+## what is the N contnet of the rec rate?
+P_2020_approx_rate <- All_zone_rates_2020 %>%
+  filter(Strip_Type == "P Strip") %>% 
+  filter(rec_rate_approx_n == "approx_rec_rate") %>% 
+    dplyr::select(Paddock_ID, 
+                Zone_ID, 
+                Total_N,
+                #Colwell,
+                #DGT,
+                #PBI,
+                Rec_N_jax,
+                #p_rec_jax,
+                GSP,
+                #Total_sum_N_content,
+                Total_sum_P_content,
+                rainfall_class,
+                rec_rate_approx_n
+                
+  ) %>%
+  distinct(Zone_ID, .keep_all = TRUE)
+
+#count(N_2020_approx_rate)
+
+P_2020_approx_rate$rainfall_class <- factor(P_2020_approx_rate$rainfall_class, 
+                                    levels = c("low", "medium", "high"))
+#str(N_2020_approx_rate)
+P_2020_approx_rate <- P_2020_approx_rate %>% 
+  dplyr::select(Zone_ID, rainfall_class,
+                p_content_rec_rate = Total_sum_P_content)
+
+## what is the approx recom rate? what is the approx GSP
+
+#####################################################################
+##Join the two df togther
+# str(N_2020_approx_rate)
+# str(N_2020_GSP)
+
+P_2020_approx_rate_GSP <- full_join(P_2020_approx_rate, P_2020_GSP)
+
+#str(N_2020_approx_rate_GSP)
+
+P_2020_approx_rate_GSP  %>%  group_by(rainfall_class) %>% 
+  summarise(av_GPS_rate = mean(p_content_GSP, na.rm = TRUE),
+            av_approx_rate = mean(p_content_rec_rate, na.rm = TRUE))
+
+P_2020_approx_rate_GSP  <- P_2020_approx_rate_GSP  %>% 
+  dplyr::mutate(difference = abs(p_content_GSP - p_content_rec_rate) )
+   
+P_2020_approx_rate_GSP  <- P_2020_approx_rate_GSP  %>% 
+  dplyr::mutate(close = case_when(
+    difference <= 5 ~ "close",
+    TRUE ~ "not_close"
+  ))
+
+P_2020_approx_rate_GSP %>%  group_by(rainfall_class,close) %>% 
+  summarise(count = n(),
+            percentage = count )
+
+```
+
+
 
 
 ## Did the soil test recommendations lead to greater gross margins?
