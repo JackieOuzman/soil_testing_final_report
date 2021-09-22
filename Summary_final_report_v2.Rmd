@@ -535,11 +535,11 @@ unique(t.test_details_rec_rates_20$GSP_Rec_both_p)
 unique(t.test_details_rec_rates_20$GSP_Rec_both_n)
 
 t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% mutate(cost_test = case_when(
-  GSP_Rec_both_p == "rec_rate" ~ 3.00,
-  GSP_Rec_both_p == "both" ~ 3.00,
+  GSP_Rec_both_p == "rec_rate" ~ 0.00, #was 3
+  GSP_Rec_both_p == "both" ~ 0.00, #was 3
   
-  GSP_Rec_both_n == "rec_rate" ~ 3.00,
-  GSP_Rec_both_n == "both" ~ 3.00,
+  GSP_Rec_both_n == "rec_rate" ~ 0.00,#was 3
+  GSP_Rec_both_n == "both" ~ 0.00,#was 3
   TRUE ~ 0.00))
 
 ## cost fert is based on rainfall class - define the rainfall class
@@ -743,11 +743,11 @@ unique(t.test_details_rec_rates_20$GSP_Rec_both_p)
 unique(t.test_details_rec_rates_20$GSP_Rec_both_n)
 
 t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>% mutate(cost_test = case_when(
-  GSP_Rec_both_p == "rec_rate" ~ 3.00,
-  GSP_Rec_both_p == "both" ~ 3.00,
+  GSP_Rec_both_p == "rec_rate" ~ 0.00, #was 3
+  GSP_Rec_both_p == "both" ~ 0.00, #was 3
   
-  GSP_Rec_both_n == "rec_rate" ~ 3.00,
-  GSP_Rec_both_n == "both" ~ 3.00,
+  GSP_Rec_both_n == "rec_rate" ~ 0.00, #was 3
+  GSP_Rec_both_n == "both" ~ 0.00, #was 3
   TRUE ~ 0.00))
 
 ## cost fert is based on rainfall class - define the rainfall class
@@ -1357,11 +1357,11 @@ t.test_details_rec_rates <- t.test_details_rec_rates %>% mutate(grain_income = Y
 # unique(t.test_details_rec_rates$GSP_Rec_both_n)
 
 t.test_details_rec_rates <- t.test_details_rec_rates %>% mutate(cost_test = case_when(
-  GSP_Rec_both_p == "rec_rate" ~ 3.00,
-  GSP_Rec_both_p == "both" ~ 3.00,
+  GSP_Rec_both_p == "rec_rate" ~ 0.00, #was 3
+  GSP_Rec_both_p == "both" ~ 0.00,#was 3
   
-  GSP_Rec_both_n == "rec_rate" ~ 3.00,
-  GSP_Rec_both_n == "both" ~ 3.00,
+  GSP_Rec_both_n == "rec_rate" ~ 0.00,#was 3
+  GSP_Rec_both_n == "both" ~ 0.00,#was 3
   TRUE ~ 0.00))
 
 ## cost fert is based on rainfall class - define the rainfall class
@@ -2636,7 +2636,7 @@ N_zones_2020_GSP_rec_rate %>%  group_by(rainfall_class) %>%
 
 # Case studies for workshop and for report.
 
-#### case study 1
+#### case study 1 53541
 
 ```{r 2020 case study 1, echo=FALSE, message=TRUE, warning=FALSE}
 
@@ -2688,7 +2688,111 @@ case_study1_P %>%  group_by(Total_sum_P_content) %>%
             
 ```
 
-### Case study 2
+### Case study 1 with an average for the entire strip (not just the zones)
+
+```{r 2020 case study 1 av strip, echo=FALSE, message=TRUE, warning=FALSE}
+
+
+case_study1 <- All_zone_rates_2020 %>% 
+  filter(Paddock_ID == "53541") %>% 
+  dplyr::select(Strip_Type,
+                Zone_ID,
+                Paddock_tested,
+                Total_N,
+                Colwell,
+                DGT,
+                p_rec,
+                Rec_N_jax,
+                Rate,
+                Total_sum_N_content,
+                Total_sum_P_content,
+                Yld,
+                GM,
+                GSP,
+                rec_rate_approx_p,
+                rec_rate_approx_n,
+                rainfall_class )%>% 
+  arrange(Zone_ID, Total_sum_P_content)
+
+
+##########################################################################
+### bring in the whole strip data
+
+whole_strip_study1 <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/SA_Ind/Stefan_Schmitt/Slater/Slater/output/Stefan_Slater_Yld_Seg_ID_zone.csv")
+
+whole_strip_study1$GSP <- as.character(whole_strip_study1$GSP)
+
+whole_strip_study1 <- whole_strip_study1 %>% 
+    dplyr::select(DryYield, Paddock_ID:Zone) 
+
+##########################################################################
+## remove the alt strip
+whole_strip_study1 <- whole_strip_study1 %>%
+filter(GSP != "Alt GSP" ) 
+
+### group the data by rate
+whole_strip_study1 <- whole_strip_study1 %>%  group_by(Rate) %>% 
+  summarise(yld_var_strip = mean(DryYield, na.rm = TRUE))
+
+
+
+whole_strip_study1 <- left_join(whole_strip_study1,case_study1) %>% 
+  distinct(Rate, .keep_all = TRUE) %>% 
+  dplyr::select(Strip_Type:Total_sum_P_content ,Rate, Yld =yld_var_strip, rainfall_class)
+
+
+### GM cals
+whole_strip_study1 <- whole_strip_study1 %>% 
+  mutate(grain_income = Yld * 286)
+
+
+whole_strip_study1 <- whole_strip_study1 %>% 
+  dplyr::mutate(
+    variable_costs = case_when(
+      Strip_Type == "P Strip" & rainfall_class == "low" ~     194,
+      Strip_Type == "P Strip" & rainfall_class == "medium" ~  358,
+      Strip_Type == "P Strip" & rainfall_class == "high" ~    540,
+      
+      Strip_Type == "N Strip" & rainfall_class == "low" ~     220,
+      Strip_Type == "N Strip" & rainfall_class == "medium" ~  340,
+      Strip_Type == "N Strip" & rainfall_class == "high" ~    498))
+### I don't get this step but it converts N applied from kg/ha to cost of N $ha
+str(whole_strip_study1)
+whole_strip_study1 <- whole_strip_study1 %>% 
+  dplyr::mutate(
+    Cost_P_N_dollar_ha  = case_when(
+      Strip_Type == "P Strip"  ~     Total_sum_P_content * 2.9,
+      Strip_Type == "N Strip"  ~     Total_sum_N_content * 1.1))     
+
+## GM
+#GM = Income grain – cost test – variable cost – cost of N
+
+
+whole_strip_study1 <- whole_strip_study1 %>% 
+  dplyr::mutate(
+    total_cost = 
+      #cost_test + 
+      variable_costs + Cost_P_N_dollar_ha,
+    GM  = grain_income - total_cost)
+
+
+whole_strip_study1 <- whole_strip_study1 %>% 
+  dplyr::select(Rate, 
+                Total_sum_P_content,
+                #Total_sum_N_content,
+                Yld,
+                GM)
+whole_strip_study1
+            
+```
+
+
+
+### Case study 2 31726
+
+This contains the whole strip plot used in the w/s.
+
+"W:\value_soil_testing_prj\Yield_data\2020\processing\r_scripts\site_t_test\Chris_Dunn\Jenherwil_Sues_2021 ws.R"
 
 ```{r 2020 case study 2, echo=FALSE, message=TRUE, warning=FALSE}
 
@@ -2743,6 +2847,104 @@ case_study2_N %>%  group_by(Total_sum_N_content) %>%
             av_GM_zone = mean(GM, na.rm = TRUE))
             
 ```
+
+### Case study 2 with an average across for the entire strip (not just zones)
+
+```{r 2020 case study 2 av strip, echo=FALSE, message=TRUE, warning=FALSE}
+case_study2 <- All_zone_rates_2020 %>% 
+  filter(Paddock_ID == "31726") %>% 
+  dplyr::select(Strip_Type,
+                Zone_ID,
+                Paddock_tested,
+                Total_N,
+                Colwell,
+                DGT,
+                p_rec,
+                Rec_N_jax,
+                Rate,
+                Total_sum_N_content,
+                Total_sum_P_content,
+                Yld,
+                GM,
+                GSP,
+                rec_rate_approx_p,
+                rec_rate_approx_n,
+                rainfall_class )%>% 
+  arrange(Zone_ID, Total_sum_P_content)
+
+
+##########################################################################
+### bring in the whole strip data
+
+whole_strip_study2 <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/Nutrien/Chris_Dunn/Jenharwil/Sues/output/Sues_Yld_SegID_Zone.csv")
+
+whole_strip_study2$GSP <- as.character(whole_strip_study2$GSP)
+names(whole_strip_study2)
+
+whole_strip_study2 <- whole_strip_study2 %>% 
+  dplyr::select(Yield, Paddock_ID:Zone) 
+
+##########################################################################
+## remove the alt strip
+whole_strip_study2 <- whole_strip_study2 %>%
+  filter(GSP != "Alt GSP" ) 
+
+### group the data by rate
+whole_strip_study2 <- whole_strip_study2 %>%  group_by(Rate) %>% 
+  summarise(yld_var_strip = mean(Yield, na.rm = TRUE))
+
+
+
+whole_strip_study2 <- left_join(whole_strip_study2,case_study2) %>% 
+  distinct(Rate, .keep_all = TRUE) %>% 
+  dplyr::select(Strip_Type:Total_sum_P_content ,Rate, Yld =yld_var_strip, rainfall_class)
+
+
+### GM cals
+whole_strip_study2 <- whole_strip_study2 %>% 
+  mutate(grain_income = Yld * 286)
+
+
+whole_strip_study2 <- whole_strip_study2 %>% 
+  dplyr::mutate(
+    variable_costs = case_when(
+      Strip_Type == "P Strip" & rainfall_class == "low" ~     194,
+      Strip_Type == "P Strip" & rainfall_class == "medium" ~  358,
+      Strip_Type == "P Strip" & rainfall_class == "high" ~    540,
+      
+      Strip_Type == "N Strip" & rainfall_class == "low" ~     220,
+      Strip_Type == "N Strip" & rainfall_class == "medium" ~  340,
+      Strip_Type == "N Strip" & rainfall_class == "high" ~    498))
+### I don't get this step but it converts N applied from kg/ha to cost of N $ha
+#str(whole_strip_study2)
+whole_strip_study2 <- whole_strip_study2 %>% 
+  dplyr::mutate(
+    Cost_P_N_dollar_ha  = case_when(
+      Strip_Type == "P Strip"  ~     Total_sum_P_content * 2.9,
+      Strip_Type == "N Strip"  ~     Total_sum_N_content * 1.1))     
+
+## GM
+#GM = Income grain – cost test – variable cost – cost of N
+
+
+whole_strip_study2 <- whole_strip_study2 %>% 
+  dplyr::mutate(
+    total_cost = 
+      #cost_test + 
+      variable_costs + Cost_P_N_dollar_ha,
+    GM  = grain_income - total_cost)
+
+
+whole_strip_study2 <- whole_strip_study2 %>% 
+  dplyr::select(Rate, 
+                #Total_sum_P_content,
+                Total_sum_N_content,
+                Yld,
+                GM)
+whole_strip_study2
+```
+
+
 
 
 ### what is the average for the approx rec rate and is this close to the GSP?
@@ -3555,7 +3757,10 @@ P_2019_approx_rate_GSP_plot_long_GM %>%
 
 
 ```
+
+
 ### 2020 N rates GM & Rec rates
+
 
 ```{r 2020 GM N plots GSP vs approx all data, echo=FALSE, message=TRUE, warning=FALSE}
 
@@ -3669,7 +3874,7 @@ N_2020_approx_rate_GSP_plot_long_GM %>%
                     breaks=c("GM_rec_rate", "GM_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
   labs(x = "rainfall class", y = "GM $/ha",
-       title = "N 2019")
+       title = "N 2020")
 
 
 
@@ -3692,7 +3897,7 @@ N_2020_approx_rate_GSP_plot_long_GM %>%
 ```
 
 
-### 2020 P rates 
+### 2020 P rates GM & Rec rates
 
 ```{r 2020 GM P plots GSP vs approx all data, echo=FALSE, message=TRUE, warning=FALSE}
 #Plots of GM for GSP rate and Approx Rates
@@ -3844,6 +4049,7 @@ expect only zones strips that are either GSP or Rec rate are reported, not both.
 
 Some paddocks the GSP and the recom rates are the same
 
+### 2019 P rates with GSP and Approx rec rates (not both)
 
 ```{r 2019 GM P plots GSP vs approx, echo=FALSE, message=TRUE, warning=FALSE}
 
@@ -3890,6 +4096,7 @@ P_approx_GSP_zone_strip_2019 %>%
 
 ```
 
+### 2019 N rates with GSP and Approx rec rates (not both)
 
 ```{r 2019 GM N plots GSP vs approx, echo=FALSE, message=TRUE, warning=FALSE}
 
@@ -3931,7 +4138,7 @@ N_approx_GSP_zone_strip_2019 %>%
 
 ```
 
-2020
+### 2020 P rates with GSP and Approx rec rates (not both)
 
 
 ```{r 2020 GM P plots GSP vs approx, echo=FALSE, message=TRUE, warning=FALSE}
@@ -3974,6 +4181,7 @@ P_approx_GSP_zone_strip_2020 %>%
 
 ```
 
+### 2020 N rates with GSP and Approx rec rates (not both)
 
 ```{r 2020 GM N plots GSP vs approx, echo=FALSE, message=TRUE, warning=FALSE}
 
