@@ -799,6 +799,13 @@ All_zone_rates_2020 <- t.test_details_rec_rates_20
 
 ```
 
+```{r write out 2020 data, message=TRUE, warning=FALSE, include=FALSE}
+
+# write.csv(All_zone_rates_2020, "W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/for_econmics/GM_t.test_details_rec_rates2020_check.csv")
+
+
+
+```
 
 ```{r stuff around getting  2019 data, message=TRUE, warning=FALSE, include=FALSE}
 
@@ -1419,7 +1426,13 @@ All_zone_rates_2019 <-neat_t.test_details_rec_rates
 
 ```
 
+```{r write out 2019 data, message=TRUE, warning=FALSE, include=FALSE}
 
+# write.csv(All_zone_rates_2019, "W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/for_econmics/GM_t.test_details_rec_rates2019_check.csv")
+
+
+
+```
 
 
 # Number of N and P trials for 2020 -2021  season 
@@ -1685,70 +1698,76 @@ GM_t.test_details_rec_rates2019  <- GM_t.test_details_rec_rates2019 %>%
 
 
 ############################################################################
-
 GM_t.test_details_rec_rates2019_P <- GM_t.test_details_rec_rates2019 %>% 
   dplyr::filter(Strip_Type == "P Strip")
-#str(GM_t.test_details_rec_rates2019_P)
 
-P_zone_2019 <- GM_t.test_details_rec_rates2019_P %>% 
+P_zone2019 <- GM_t.test_details_rec_rates2019_P %>% 
   distinct(Zone_ID, .keep_all = TRUE) %>% 
   dplyr::select(Paddock_ID:Rec_N_jax)
 
-plot_rec_P_2019 <-ggplot(P_zone_2019, aes(x=p_rec)) +
+
+
+plot_rec_P_2019 <-ggplot(P_zone2019, aes(x=p_rec)) +
   geom_histogram(aes(y = stat(count) / sum(count))) +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0,.6))+
   #facet_wrap(.~ rainfall_class_f)+
   theme_bw() +
-  geom_vline(
-    xintercept = 5,
-    linetype = "dotted",
-    color = "red",
-    size = 2.0
-  ) +
-  #scale_x_continuous(breaks = seq(-5.0, 5.0, by = .5))+
+  # geom_vline(
+  #   xintercept = 7.5, #because my bin is 0-10 and if 
+  #   linetype = "dotted",
+  #   color = "red",
+  #   size = 2.0
+  # ) +
+  scale_x_continuous(breaks = seq(0, 30, by = 5))+
   labs(
     title = "Recommendation for P 2019",
     y = "Frequency of zones",
     x = "Fertiliser recommendation (kg P/ha)"#,
-   # subtitle = "only including zones used in economic analysis (n =103)"
+    # subtitle = "only including zones used in economic analysis (n =103)"
   )+
-  theme(axis.title.y = element_text(size = 12),
-        axis.title.x = element_text(size = 12),
-        axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10))
-
+  theme(#axis.title.y = element_text(size = 12),
+        plot.title = element_text(size = 20),
+        axis.title.y = element_blank(),
+        
+        axis.title.x = element_text(size = 18),
+        axis.text.x = element_text(size = 18),
+        axis.text.y = element_text(size = 18))
+        
 
 
 ###########################   N    ###########################################
 GM_t.test_details_rec_rates2019_N <- GM_t.test_details_rec_rates2019 %>% 
   dplyr::filter(Strip_Type == "N Strip")
 
-N_zone <- GM_t.test_details_rec_rates2019_N %>% 
+N_zone2019 <- GM_t.test_details_rec_rates2019_N %>% 
   distinct(Zone_ID, .keep_all = TRUE) %>% 
   dplyr::select(Paddock_ID:Rec_N_jax)
 
 
-plot_rec_N_2019 <-ggplot(N_zone, aes(x=Rec_N_jax)) +
+plot_rec_N_2019 <-ggplot(N_zone2019, aes(x=Rec_N_jax)) +
   geom_histogram(aes(y = stat(count) / sum(count))) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, 0.6))+
   #facet_wrap(.~ rainfall_class_f)+
   theme_bw() +
-  geom_vline(
-    xintercept = 0,
-    linetype = "dotted",
-    color = "red",
-    size = 2.0
-  ) +
-  #scale_x_continuous(breaks = seq(-5.0, 5.0, by = .5))+
+  # geom_vline(
+  #   xintercept = 0,
+  #   linetype = "dotted",
+  #   color = "red",
+  #   size = 2.0
+  # ) +
+  scale_x_continuous(limits = c(-10, 300))+ #first bin starts with negative value
   labs(
     title = "Recommendation for N 2019",
     y = "Frequency of zones",
     x = "Fertiliser recommendation (kg N/ha)")+
   #subtitle = "only including zones used in economic analysis (n =70)"
-  theme(axis.title.y = element_text(size = 12),
-        axis.title.x = element_text(size = 12),
-        axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10))
+  theme(plot.title = element_text(size = 20),
+        #axis.title.y = element_text(size = 16),
+        #axis.title.x = element_text(size = 12),
+        axis.title.x = element_blank(), 
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 18),
+        axis.text.y = element_text(size = 18))
 
 ```
 
@@ -1793,23 +1812,25 @@ plot_rec_P_2020 <-ggplot(P_zone_2020, aes(x=p_rec)) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1),limits = c(0, 0.6))+
   #facet_wrap(.~ rainfall_class_f)+
   theme_bw() +
-  geom_vline(
-    xintercept = 5,
-    linetype = "dotted",
-    color = "red",
-    size = 2.0
-  ) +
-  #scale_x_continuous(breaks = seq(-5.0, 5.0, by = .5))+
+  # geom_vline(
+  #   xintercept = 7.5,
+  #   linetype = "dotted",
+  #   color = "red",
+  #   size = 2.0
+  # ) +
+  scale_x_continuous(breaks = seq(0, 30, by = 10))+
   labs(
     title = "Recommendation for P 2020",
     y = "Frequency of zones",
     x = "Fertiliser Recommendation (kg P/ha)"
     #subtitle = "only including zones used in economic analysis (n =103)"
   )+
-  theme(axis.title.y = element_text(size = 12),
-        axis.title.x = element_text(size = 12),
-        axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10))
+  theme(#axis.title.y = element_text(size = 12),
+        plot.title = element_text(size = 20),
+        axis.title.y = element_blank(),
+        axis.title.x = element_text(size = 18),
+        axis.text.x = element_text(size = 18),
+        axis.text.y = element_text(size = 18))
 
 
 
@@ -1817,32 +1838,35 @@ plot_rec_P_2020 <-ggplot(P_zone_2020, aes(x=p_rec)) +
 GM_t.test_details_rec_rates2020_N <- GM_t.test_details_rec_rates2020 %>% 
   dplyr::filter(Strip_Type == "N Strip")
 
-N_zone <- GM_t.test_details_rec_rates2020_N %>% 
+N_zone_2020 <- GM_t.test_details_rec_rates2020_N %>% 
   distinct(Zone_ID, .keep_all = TRUE) %>% 
   dplyr::select(Paddock_ID:Rec_N_jax)
 
 
-plot_rec_N_2020 <-ggplot(N_zone, aes(x=Rec_N_jax)) +
+plot_rec_N_2020 <-ggplot(N_zone_2020, aes(x=Rec_N_jax)) +
   geom_histogram(aes(y = stat(count) / sum(count))) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1),limits = c(0, 0.6))+
   #facet_wrap(.~ rainfall_class_f)+
   theme_bw() +
-  geom_vline(
-    xintercept = 0,
-    linetype = "dotted",
-    color = "red",
-    size = 2.0
-  ) +
-  #scale_x_continuous(breaks = seq(-5.0, 5.0, by = .5))+
+  # geom_vline(
+  #   xintercept = 0,
+  #   linetype = "dotted",
+  #   color = "red",
+  #   size = 2.0
+  # ) +
+  scale_x_continuous(limits = c(-10, 300))+ #first bin starts with negative value
   labs(
     title = "Recommendation for N 2020",
     y = "Frequency of zones",
     x = "Fertiliser Recommendation (kg N/ha)")+
   #subtitle = "only including zones used in economic analysis (n =70)"
-  theme(axis.title.y = element_text(size = 12),
-        axis.title.x = element_text(size = 12),
-        axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10))
+  theme(#axis.title.y = element_text(size = 12),
+        #axis.title.x = element_text(size = 12),
+        plot.title = element_text(size = 20),
+        axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(size = 18),
+        axis.text.y = element_text(size = 18))
 
 
 ```
@@ -1858,6 +1882,25 @@ grid.arrange(plot_rec_N_2020, plot_rec_P_2020, nrow = 1)
 
 
 
+```{r soil testing recom plot 2019 and 2020, message=TRUE, warning=FALSE, include=FALSE}
+
+
+
+all_rec_rate <- grid.arrange(plot_rec_N_2019, plot_rec_N_2020, 
+             plot_rec_P_2019, plot_rec_P_2020, nrow = 2)
+
+
+
+all_rec_rate
+# ggsave(all_rec_rate,
+#        filename = "W:/value_soil_testing_prj/Yield_data/scripts/final_report/soil_testing_final_report/plot_rec_rates.png", 
+#        device = "png" ,
+#        dpi=600,
+#        width = 16,
+#        height = 9)
+
+
+```
 
 
 
@@ -1882,7 +1925,45 @@ Therese has suggested this therhold.
 
 
 
+2019 P 
+```{r soil test indicates fert response likley P 2019, echo=FALSE, message=TRUE, warning=FALSE}
+# count how many P recom rates are above 5
+
+(P_zone2019 %>% filter(p_rec >5) %>% count())/(P_zone2019 %>%  count())*100
+
+
+```
  
+ 2020 P
+```{r soil test indicates fert response likley P 2020, echo=FALSE, message=TRUE, warning=FALSE}
+# count how many P recom rates are above 5
+
+(P_zone_2020 %>% filter(p_rec >5) %>% count())/(P_zone_2020 %>%  count())*100
+
+```
+
+2019 N 
+```{r soil test indicates fert response likley N 2019, echo=FALSE, message=TRUE, warning=FALSE}
+# count how many P recom rates are above 5
+
+(N_zone2019 %>% filter(Rec_N_jax >0) %>% count())/(N_zone2019 %>%  count())*100
+
+
+
+```
+
+
+2020 N 
+```{r soil test indicates fert response likley N 2020, echo=FALSE, message=TRUE, warning=FALSE}
+# count how many P recom rates are above 5
+
+
+(N_zone_2020 %>% filter(Rec_N_jax >0) %>% count())/(N_zone_2020 %>%  count())*100
+
+
+```
+
+### I have done something wrong in the next section
 ```{r soil testing recom plot 2019  P working, echo=FALSE, message=TRUE, warning=FALSE}
 ### Duplication may have crept in ?? I only want one zoneID strip type and rate
 rec_rate_vs_GSP_2019_P_N <- All_zone_rates_2019 %>% 
