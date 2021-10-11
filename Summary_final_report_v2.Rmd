@@ -1963,57 +1963,49 @@ Therese has suggested this therhold.
 
 ```
 
-### I have done something wrong in the next section
+### 2019 P
 ```{r soil testing recom plot 2019  P working, echo=FALSE, message=TRUE, warning=FALSE}
-### Duplication may have crept in ?? I only want one zoneID strip type and rate
+
 rec_rate_vs_GSP_2019_P_N <- All_zone_rates_2019 %>% 
   distinct(Zone_ID, Strip_Type, Rate, .keep_all = TRUE)
-### the GM has some negative values lets recode these as zero
-#str(rec_rate_vs_GSP_2019_P_N) #349
 
-############################################################################
+#View(rec_rate_vs_GSP_2019_P_N)
 rec_rate_vs_GSP_2019_P_N$GSP <- as.character(rec_rate_vs_GSP_2019_P_N$GSP)
 rec_rate_vs_GSP_2019_P_N$Strip_Type <- as.character(rec_rate_vs_GSP_2019_P_N$Strip_Type)
-#str(GM_t.test_details_rec_rates2019)
+
 
 ###########################   P    ###########################################
-rec_rate_vs_GSP_2019_P <- rec_rate_vs_GSP_2019_P_N %>% 
-  dplyr::filter(Strip_Type == "P Strip")
+#only keep the GSP values
+
+rec_rate_vs_GSP_2019_P_GSP <- rec_rate_vs_GSP_2019_P_N %>% 
+  dplyr::filter(Strip_Type == "P Strip") %>% 
+  dplyr::filter(GSP == "GSP")
 
 
-rec_rate_vs_GSP_2019_P <- rec_rate_vs_GSP_2019_P %>% mutate(soil_test_says_P = case_when(
-  Strip_Type == "P Strip" & GSP == "GSP"& Total_sum_P_content < p_rec ~  "add_more_P",
-  Strip_Type == "P Strip" & GSP == "GSP"& Total_sum_P_content == p_rec ~ "no_change",
-  Strip_Type == "P Strip" & GSP == "GSP"& Total_sum_P_content > p_rec ~  "less_P",
+rec_rate_vs_GSP_2019_P_GSP <- rec_rate_vs_GSP_2019_P_GSP %>% mutate(soil_test_says_P = case_when(
+  Total_sum_P_content < p_rec ~  "add_more_P",
+  Total_sum_P_content == p_rec ~ "no_change",  #nothing is exact 
+  Total_sum_P_content > p_rec ~  "less_P",
 ))
-
-#View(rec_rate_vs_GSP_2019_P)  ## this has all the rates in it
-## what is the rec rate per zone
-rec_rate_vs_GSP_2019_P_zone <-rec_rate_vs_GSP_2019_P %>% 
-  distinct(Zone_ID, .keep_all = TRUE) %>% 
-  dplyr::select(Paddock_ID:Rec_N_jax)
-
-rec_rate_vs_GSP_2019_P_zone <- rec_rate_vs_GSP_2019_P_zone %>% 
-  mutate(yld_repsonse_likely_to_p = case_when(
-    p_rec >= 5 ~ "respose",
-    TRUE ~ "no_resposne"
-  ))
-P_zone_count_2019 <- rec_rate_vs_GSP_2019_P_zone %>%  group_by() %>% 
-  summarise(zone_2019_P = n() )
-
-table1_2019_P <- rec_rate_vs_GSP_2019_P_zone %>%  
-  group_by(yld_repsonse_likely_to_p) %>% 
-  summarise(count_p_over5 = n()) 
+#View(rec_rate_vs_GSP_2019_P_GSP)
 
 
-table2_2019_P <-rec_rate_vs_GSP_2019_P %>%  filter(Strip_Type == "P Strip") %>%
-  distinct(Zone_ID, .keep_all = TRUE) %>%
+table2_2019_P <-rec_rate_vs_GSP_2019_P_GSP %>% 
   group_by(soil_test_says_P) %>%
   summarise(count_vs_GSP = n() )
 
-# P_zone_count_2019
-# table1_2019_P
-# table2_2019_P
+count_zone_2019P_GPS <-  count(rec_rate_vs_GSP_2019_P_GSP)
+
+
+table2_2019_P <- table2_2019_P %>%
+  mutate(
+    count_zone_2019P_GPS = count_zone_2019P_GPS[1, 1],
+    percenatge = (count_vs_GSP / count_zone_2019P_GPS) *
+      100
+  ) %>%
+  rename(detail = soil_test_says_P) %>%
+  dplyr::select(detail, percenatge)
+table2_2019_P 
 
 
 ```
@@ -2026,226 +2018,151 @@ Note that there are 74 zones but only 65 zones with a GSP
 
 
 ## make into one table
-#table1_2019_P
+
+table1_2019_P <- (P_zone2019 %>% filter(p_rec >5) %>% count())/(P_zone2019 %>%  count())*100
 table1_2019_P <- table1_2019_P %>% 
-  rename(detail = yld_repsonse_likely_to_p, 
-         count= count_p_over5)%>% 
-  mutate(count_zones = 74,
-         percent = (count /74)*100)
+  rename(percenatge = n) %>% 
+  dplyr::mutate(detail = "soil test zones")
 
 
+table_2019_P <- rbind(table1_2019_P, table2_2019_P)
 
-table2_2019_P <- table2_2019_P %>% 
-  rename(detail = soil_test_says_P, 
-         count= count_vs_GSP) %>% 
-  mutate(count_zones = 65,
-         percent = (count /65)*100)
-
-
-
-table1_2_2019_P <- rbind(table1_2019_P, table2_2019_P)
-
-
-table1_2_2019_P <- table1_2_2019_P %>% 
-  mutate(detail =  case_when(
-    detail == "respose" ~ "soil test indicated a yield response",
-    detail == "add_more_P" ~ "soil test recommended a increase in P",
-    detail == "less_P" ~ "soil test recommended a reduction in P",
+table_2019_P <- table_2019_P %>% 
+  mutate(detail_extra =  case_when(
+    detail == "soil test zones" ~ "soil test indicated a yield response",
+    detail == "add_more_P" ~ "soil test recommended a increase in P compared to GSP",
+    detail == "less_P" ~ "soil test recommended a reduction in P compared to GSP",
     TRUE ~ detail
   ))
 
-table1_2_2019_P
-
+table_2019_P
 
 ```
 
-
+2019  N
 
 
 ```{r soil testing recom plot 2019 N working, message=TRUE, warning=FALSE, include=FALSE}
+rec_rate_vs_GSP_2019_P_N <- All_zone_rates_2019 %>% 
+  distinct(Zone_ID, Strip_Type, Rate, .keep_all = TRUE)
+
+#View(rec_rate_vs_GSP_2019_P_N)
+rec_rate_vs_GSP_2019_P_N$GSP <- as.character(rec_rate_vs_GSP_2019_P_N$GSP)
+rec_rate_vs_GSP_2019_P_N$Strip_Type <- as.character(rec_rate_vs_GSP_2019_P_N$Strip_Type)
+
 
 ###########################   N    ###########################################
-rec_rate_vs_GSP_2019_N <- rec_rate_vs_GSP_2019_P_N %>% 
-  dplyr::filter(Strip_Type == "N Strip")
+#only keep the GSP values
+
+rec_rate_vs_GSP_2019_N_GSP <- rec_rate_vs_GSP_2019_P_N %>% 
+  dplyr::filter(Strip_Type == "N Strip") %>% 
+  dplyr::filter(GSP == "GSP")
 
 
-rec_rate_vs_GSP_2019_N <- rec_rate_vs_GSP_2019_N %>% mutate(soil_test_says_N = case_when(
-  Strip_Type == "N Strip" & GSP == "GSP"& Total_sum_P_content < Rec_N_jax ~  "add_more_N",
-  Strip_Type == "N Strip" & GSP == "GSP"& Total_sum_P_content == Rec_N_jax ~ "no_change",
-  Strip_Type == "N Strip" & GSP == "GSP"& Total_sum_P_content > Rec_N_jax ~  "less_N",
+rec_rate_vs_GSP_2019_N_GSP <- rec_rate_vs_GSP_2019_N_GSP %>% mutate(soil_test_says_N = case_when(
+  Total_sum_N_content < Rec_N_jax ~  "add_more_N",
+  Total_sum_N_content == Rec_N_jax ~ "no_change",  #nothing is exact 
+  Total_sum_N_content > Rec_N_jax ~  "less_N",
 ))
-
-#View(rec_rate_vs_GSP_2019_P)  ## this has all the rates in it
-## what is the rec rate per zone
-rec_rate_vs_GSP_2019_N_zone <-rec_rate_vs_GSP_2019_N %>% 
-  distinct(Zone_ID, .keep_all = TRUE) %>% 
-  dplyr::select(Paddock_ID:Rec_N_jax)
-
-rec_rate_vs_GSP_2019_N_zone <- rec_rate_vs_GSP_2019_N_zone %>% 
-  mutate(yld_repsonse_likely_to_n = case_when(
-    Rec_N_jax > 0 ~ "respose",
-    TRUE ~ "no_resposne"
-  ))
-N_zone_count_2019 <- rec_rate_vs_GSP_2019_N_zone %>%  group_by() %>% 
-  summarise(zone_2019_N = n() )
-
-table1_2019_N <- rec_rate_vs_GSP_2019_N_zone %>%  
-  group_by(yld_repsonse_likely_to_n) %>% 
-  summarise(count_n_over0 = n()) 
+#View(rec_rate_vs_GSP_2019_P_GSP)
 
 
-table2_2019_N <-rec_rate_vs_GSP_2019_N %>%  
-  distinct(Zone_ID, .keep_all = TRUE) %>%
+table2_2019_N <-rec_rate_vs_GSP_2019_N_GSP %>% 
   group_by(soil_test_says_N) %>%
   summarise(count_vs_GSP = n() )
-#View(rec_rate_vs_GSP_2019_N)
 
-# N_zone_count_2019
-# table1_2019_N
-# table2_2019_N
+count_zone_2019N_GPS <-  count(rec_rate_vs_GSP_2019_N_GSP)
+
+
+table2_2019_N <- table2_2019_N %>%
+  mutate(
+    count_zone_2019N_GPS = count_zone_2019N_GPS[1, 1],
+    percenatge = (count_vs_GSP / count_zone_2019N_GPS) *
+      100
+  ) %>%
+  rename(detail = soil_test_says_N) %>%
+  dplyr::select(detail, percenatge)
+table2_2019_N 
+
 ```
 
 ### N zone in 2019
 
-23 zones with GSP
+
 
 
 ```{r Count of N zone in 2019, echo=FALSE, message=TRUE, warning=FALSE}
 
+
+## make into one table
+
+table1_2019_N <- (N_zone2019 %>% filter(Rec_N_jax >0) %>% count())/(N_zone2019 %>%  count())*100
 table1_2019_N <- table1_2019_N %>% 
-  rename(detail = yld_repsonse_likely_to_n, 
-         count= count_n_over0)%>% 
-  mutate(count_zones = 31,
-         percent = (count /31)*100)
+  rename(percenatge = n) %>% 
+  dplyr::mutate(detail = "soil test zones")
+table1_2019_N
+
+table_2019_N <- rbind(table1_2019_N, table2_2019_N)
 
 
 
-table2_2019_N <- table2_2019_N %>% 
-  rename(detail = soil_test_says_N, 
-         count= count_vs_GSP) %>% 
-  mutate(count_zones = 23,
-         percent = (count /23)*100)
-
-table1_2_2019_N <- rbind(table1_2019_N, table2_2019_N)
-
-
-
-
-table1_2_2019_N <- table1_2_2019_N %>% 
-  mutate(detail =  case_when(
-    detail == "respose" ~ "soil test indicated a yield response",
-    detail == "add_more_N" ~ "soil test recommended a increase in N",
-    detail == "less_N" ~ "soil test recommended a reduction in N",
+table_2019_N <- table_2019_N %>% 
+  mutate(detail_extra =  case_when(
+    detail == "soil test zones" ~ "soil test indicated a yield response",
+    detail == "add_more_N" ~ "soil test recommended a increase in N compared to GSP",
+    detail == "less_N" ~ "soil test recommended a reduction in N compared to GSP",
     TRUE ~ detail
   ))
 
-table1_2_2019_N
-
+table_2019_N
 ```
-```{r soil testing rec rates 2020 working, include=FALSE}
 
 
 
-### Duplication may have crept in ?? I only want one zoneID strip type and rate
+```{r soil testing rec rates 2020 P working, include=FALSE}
+
+
 rec_rate_vs_GSP_2020_P_N <- All_zone_rates_2020 %>% 
   distinct(Zone_ID, Strip_Type, Rate, .keep_all = TRUE)
-### the GM has some negative values lets recode these as zero
-#str(rec_rate_vs_GSP_2020_P_N) #562
 
-############################################################################
+#View(rec_rate_vs_GSP_2020_P_N)
 rec_rate_vs_GSP_2020_P_N$GSP <- as.character(rec_rate_vs_GSP_2020_P_N$GSP)
 rec_rate_vs_GSP_2020_P_N$Strip_Type <- as.character(rec_rate_vs_GSP_2020_P_N$Strip_Type)
-#str(GM_t.test_details_rec_rates2020)
+
 
 ###########################   P    ###########################################
-rec_rate_vs_GSP_2020_P <- rec_rate_vs_GSP_2020_P_N %>% 
-  dplyr::filter(Strip_Type == "P Strip")
+#only keep the GSP values
+
+rec_rate_vs_GSP_2020_P_GSP <- rec_rate_vs_GSP_2020_P_N %>% 
+  dplyr::filter(Strip_Type == "P Strip") %>% 
+  dplyr::filter(GSP == "GSP")
 
 
-rec_rate_vs_GSP_2020_P <- rec_rate_vs_GSP_2020_P %>% mutate(soil_test_says_P = case_when(
-  Strip_Type == "P Strip" & GSP == "GSP"& Total_sum_P_content < p_rec ~  "add_more_P",
-  Strip_Type == "P Strip" & GSP == "GSP"& Total_sum_P_content == p_rec ~ "no_change",
-  Strip_Type == "P Strip" & GSP == "GSP"& Total_sum_P_content > p_rec ~  "less_P",
+rec_rate_vs_GSP_2020_P_GSP <- rec_rate_vs_GSP_2020_P_GSP %>% mutate(soil_test_says_P = case_when(
+  Total_sum_P_content < p_rec ~  "add_more_P",
+  Total_sum_P_content == p_rec ~ "no_change",  #nothing is exact 
+  Total_sum_P_content > p_rec ~  "less_P",
 ))
 
-#View(rec_rate_vs_GSP_2020_P)  ## this has all the rates in it
-## what is the rec rate per zone
-rec_rate_vs_GSP_2020_P_zone <-rec_rate_vs_GSP_2020_P %>% 
-  distinct(Zone_ID, .keep_all = TRUE) %>% 
-  dplyr::select(Paddock_ID:Rec_N_jax,soil_test_says_P )
-#str(rec_rate_vs_GSP_2020_P_zone)
 
 
-#create a new clm
-rec_rate_vs_GSP_2020_P_zone <- rec_rate_vs_GSP_2020_P_zone %>% 
-  mutate(yld_repsonse_likely_to_p = case_when(
-    p_rec >= 5 ~ "respose",
-    TRUE ~ "no_resposne"
-  ))
-## count the number of P zones
-P_zone_count2020 <- rec_rate_vs_GSP_2020_P_zone %>%  group_by() %>% 
-  summarise(count = n() )
-#P_zone_count
-# how many zones indicate a yld resposne by the soil test?
-
-table1_2020_P <- rec_rate_vs_GSP_2020_P_zone %>%  
-  group_by(yld_repsonse_likely_to_p) %>% 
-  summarise(count_P_over5 = n() )
-
-#str(rec_rate_vs_GSP_2020_P_zone)
-
-table2_2020_P <-rec_rate_vs_GSP_2020_P_zone %>%  
-  filter(Strip_Type == "P Strip") %>% 
-  distinct(Zone_ID, .keep_all = TRUE) %>% 
-  group_by(soil_test_says_P) %>% 
-  summarise(count_vs_GSP = n()) 
-
-# table1_2020_P
-# table2_2020_P
-# 
-# 
-# str(rec_rate_vs_GSP_2020_P_N)
-
-
-###########################   N    ###########################################
-rec_rate_vs_GSP_2020_N <- rec_rate_vs_GSP_2020_P_N %>% 
-  dplyr::filter(Strip_Type == "N Strip")
-
-
-rec_rate_vs_GSP_2020_N <- rec_rate_vs_GSP_2020_N %>% mutate(soil_test_says_N = case_when(
-  Strip_Type == "N Strip" & GSP == "GSP"& Total_sum_P_content < Rec_N_jax ~  "add_more_N",
-  Strip_Type == "N Strip" & GSP == "GSP"& Total_sum_P_content == Rec_N_jax ~ "no_change",
-  Strip_Type == "N Strip" & GSP == "GSP"& Total_sum_P_content > Rec_N_jax ~  "less_N",
-))
-
-#View(rec_rate_vs_GSP_2020_P)  ## this has all the rates in it
-## what is the rec rate per zone
-rec_rate_vs_GSP_2020_N_zone <-rec_rate_vs_GSP_2020_N %>% 
-  distinct(Zone_ID, .keep_all = TRUE) %>% 
-  dplyr::select(Paddock_ID:Rec_N_jax, soil_test_says_N)
-
-rec_rate_vs_GSP_2020_N_zone <- rec_rate_vs_GSP_2020_N_zone %>% 
-  mutate(yld_repsonse_likely_to_n = case_when(
-    Rec_N_jax > 0 ~ "respose",
-    TRUE ~ "no_resposne"
-  ))
-N_zone_count_2020 <- rec_rate_vs_GSP_2020_N_zone %>%  group_by() %>% 
-  summarise(zone_2020_N = n() )
-
-table1_2020_N <- rec_rate_vs_GSP_2020_N_zone %>%  
-  group_by(yld_repsonse_likely_to_n) %>% 
-  summarise(count_n_over0 = n()) 
-
-
-table2_2020_N <-rec_rate_vs_GSP_2020_N %>%  
-  distinct(Zone_ID, .keep_all = TRUE) %>%
-  group_by(soil_test_says_N) %>%
+table2_2020_P <-rec_rate_vs_GSP_2020_P_GSP %>% 
+  group_by(soil_test_says_P) %>%
   summarise(count_vs_GSP = n() )
-#View(rec_rate_vs_GSP_2020_N)
 
-# N_zone_count_2020
-# table1_2020_N
-# table2_2020_N
+count_zone_2020P_GPS <-  count(rec_rate_vs_GSP_2020_P_GSP)
+
+
+table2_2020_P <- table2_2020_P %>%
+  mutate(
+    count_zone_2020P_GPS = count_zone_2020P_GPS[1, 1],
+    percenatge = (count_vs_GSP / count_zone_2020P_GPS) *
+      100
+  ) %>%
+  rename(detail = soil_test_says_P) %>%
+  dplyr::select(detail, percenatge)
+table2_2020_P 
+
 
 
 ```
@@ -2254,89 +2171,272 @@ table2_2020_N <-rec_rate_vs_GSP_2020_N %>%
 
 ```{r Count of P zone in 2020, echo=FALSE, message=TRUE, warning=FALSE}
 
-# rec_rate_vs_GSP_2020_P %>%  group_by(GSP) %>% 
-#   summarise(count = n()) #106 with GSP
-
-#N_zone_count_2019
 
 ## make into one table
 
-
-# P_zone_count2020
-# table1_2020_P
-## make into one table
+table1_2020_P <- (P_zone_2020 %>% filter(p_rec >5) %>% count())/(P_zone_2020 %>%  count())*100
 table1_2020_P <- table1_2020_P %>% 
-  rename(detail = yld_repsonse_likely_to_p, 
-         count= count_P_over5)%>% 
-  mutate(count_zones = 106,
-         percent = (count /106)*100)
-
-table2_2020_P <- table2_2020_P %>% 
-  rename(detail = soil_test_says_P, 
-         count= count_vs_GSP)%>% 
-  mutate(count_zones = 106,
-         percent = (count /106)*100)
+  rename(percenatge = n) %>% 
+  dplyr::mutate(detail = "soil test zones")
 
 
-table1_2_2020_P <- rbind(table1_2020_P, table2_2020_P)
+table_2020_P <- rbind(table1_2020_P, table2_2020_P)
 
-
-table1_2_2020_P <- table1_2_2020_P %>% 
-  mutate(detail =  case_when(
-    detail == "respose" ~ "soil test indicated a yield response",
-    detail == "add_more_P" ~ "soil test recommended a increase in P",
-    detail == "less_P" ~ "soil test recommended a reduction in P",
+table_2020_P <- table_2020_P %>% 
+  mutate(detail_extra =  case_when(
+    detail == "soil test zones" ~ "soil test indicated a yield response",
+    detail == "add_more_P" ~ "soil test recommended a increase in P compared to GSP",
+    detail == "less_P" ~ "soil test recommended a reduction in P compared to GSP",
     TRUE ~ detail
   ))
 
-table1_2_2020_P
-
-
+table_2020_P
 
 ```
 
 ### N zone in 2020
 
+```{r cal Count of N zone in 2020, message=TRUE, warning=FALSE, include=FALSE}
+
+rec_rate_vs_GSP_2020_P_N <- All_zone_rates_2020 %>% 
+  distinct(Zone_ID, Strip_Type, Rate, .keep_all = TRUE)
+
+#View(rec_rate_vs_GSP_2019_P_N)
+rec_rate_vs_GSP_2020_P_N$GSP <- as.character(rec_rate_vs_GSP_2020_P_N$GSP)
+rec_rate_vs_GSP_2020_P_N$Strip_Type <- as.character(rec_rate_vs_GSP_2020_P_N$Strip_Type)
+
+
+###########################   N    ###########################################
+#only keep the GSP values
+
+rec_rate_vs_GSP_2020_N_GSP <- rec_rate_vs_GSP_2020_P_N %>% 
+  dplyr::filter(Strip_Type == "N Strip") %>% 
+  dplyr::filter(GSP == "GSP")
+
+
+rec_rate_vs_GSP_2020_N_GSP <- rec_rate_vs_GSP_2020_N_GSP %>% mutate(soil_test_says_N = case_when(
+  Total_sum_N_content < Rec_N_jax ~  "add_more_N",
+  Total_sum_N_content == Rec_N_jax ~ "no_change",  #nothing is exact 
+  Total_sum_N_content > Rec_N_jax ~  "less_N",
+))
+
+
+
+table2_2020_N <-rec_rate_vs_GSP_2020_N_GSP %>% 
+  group_by(soil_test_says_N) %>%
+  summarise(count_vs_GSP = n() )
+
+count_zone_2020N_GPS <-  count(rec_rate_vs_GSP_2020_N_GSP)
+
+
+table2_2020_N <- table2_2020_N %>%
+  mutate(
+    count_zone_2020N_GPS = count_zone_2020N_GPS[1, 1],
+    percenatge = (count_vs_GSP / count_zone_2020N_GPS) *
+      100
+  ) %>%
+  rename(detail = soil_test_says_N) %>%
+  dplyr::select(detail, percenatge)
+table2_2020_N 
+
+```
+
 ```{r Count of N zone in 2020, echo=FALSE, message=TRUE, warning=FALSE}
 
-# rec_rate_vs_GSP_2020_N %>%  group_by(GSP) %>% 
-#   summarise(count = n()) #72 with GSP
-
-#N_zone_count_2020
-#table1_2020_N
 
 ## make into one table
+
+table1_2020_N <- (N_zone_2020 %>% filter(Rec_N_jax >0) %>% count())/(N_zone_2020 %>%  count())*100
 table1_2020_N <- table1_2020_N %>% 
-  rename(detail = yld_repsonse_likely_to_n, 
-         count= count_n_over0)%>% 
-  mutate(count_zones = 73,
-         percent = (count /73)*100)
+  rename(percenatge = n) %>% 
+  dplyr::mutate(detail = "soil test zones")
+table1_2020_N
 
-table2_2020_N <- table2_2020_N %>% 
-  rename(detail = soil_test_says_N, 
-         count= count_vs_GSP)%>% 
-  mutate(count_zones = 72,
-         percent = (count /72)*100)
+table_2020_N <- rbind(table1_2020_N, table2_2020_N)
 
 
-table1_2_2020_N <- rbind(table1_2020_N, table2_2020_N)
 
-
-table1_2_2020_N <- table1_2_2020_N %>% 
-  mutate(detail =  case_when(
-    detail == "respose" ~ "soil test indicated a yield response",
-    detail == "add_more_N" ~ "soil test recommended a increase in N",
-    detail == "less_N" ~ "soil test recommended a reduction in N",
+table_2020_N <- table_2020_N %>% 
+  mutate(detail_extra =  case_when(
+    detail == "soil test zones" ~ "soil test indicated a yield response",
+    detail == "add_more_N" ~ "soil test recommended a increase in N compared to GSP",
+    detail == "less_N" ~ "soil test recommended a reduction in N compared to GSP",
     TRUE ~ detail
   ))
 
-table1_2_2020_N
+table_2020_N
+```
 
+
+### ok thats great but the soil test recommedation might be close to what the growers is applying
+
+
+
+```{r was rec rate close to grower rate, message=TRUE, warning=FALSE, include=FALSE}
+
+######################################################################################################################
+###2019 P
+######################################################################################################################
+dim(rec_rate_vs_GSP_2019_P_GSP)
+
+rec_rate_close_to_GSP_2019_P <- rec_rate_vs_GSP_2019_P_GSP %>% 
+  select(Zone_ID, Strip_Type, p_rec, Rate , GSP, Total_sum_P_content )
+
+rec_rate_close_to_GSP_2019_P <- rec_rate_close_to_GSP_2019_P %>% 
+  dplyr::mutate(p_rec_lower = p_rec - 5,
+                p_rec_upper = p_rec + 5
+                )
+
+rec_rate_close_to_GSP_2019_P <- rec_rate_close_to_GSP_2019_P %>% 
+  dplyr::mutate(
+    GPS_close_rec_rate = case_when(
+                   Total_sum_P_content >= p_rec_lower & Total_sum_P_content <= p_rec_upper~ "GPS_close",
+                   TRUE ~ "GPS_not_close"))
+                
+count_rec_rate_close_to_GSP_2019_P <- count(rec_rate_close_to_GSP_2019_P)
+rec_rate_close_to_GSP_2019_P <- rec_rate_close_to_GSP_2019_P %>% 
+  group_by(GPS_close_rec_rate ) %>% 
+  summarise(count_close = n())
+
+
+rec_rate_close_to_GSP_2019_P <- rec_rate_close_to_GSP_2019_P %>% 
+  mutate(details = "GPS_close_P_2019",
+         count_GPS = count_rec_rate_close_to_GSP_2019_P[1,1],
+         percentage = count_close/count_GPS)  
+  #filter(GPS_close_rec_rate == "GPS_close")
+
+###################################################################################################################### 
+###2019 N
+######################################################################################################################
+rec_rate_close_to_GSP_2019_N <- rec_rate_vs_GSP_2019_N_GSP %>% 
+  select(Zone_ID, Strip_Type, Rec_N_jax, Rate , GSP, Total_sum_N_content )
+
+rec_rate_close_to_GSP_2019_N <- rec_rate_close_to_GSP_2019_N %>% 
+  dplyr::mutate(n_rec_lower = Rec_N_jax - 10,
+                n_rec_upper = Rec_N_jax + 10
+  )
+
+rec_rate_close_to_GSP_2019_N <- rec_rate_close_to_GSP_2019_N %>% 
+  dplyr::mutate(
+    GPS_close_rec_rate = case_when(
+      Total_sum_N_content >= n_rec_lower & Total_sum_N_content <= n_rec_upper~ "GPS_close",
+      TRUE ~ "GPS_not_close"))
+#View(rec_rate_close_to_GSP_2019_N)
+count_rec_rate_close_to_GSP_2019_N <- count(rec_rate_close_to_GSP_2019_N)
+count_rec_rate_close_to_GSP_2019_N
+
+
+rec_rate_close_to_GSP_2019_N <- rec_rate_close_to_GSP_2019_N %>% 
+  group_by(GPS_close_rec_rate ) %>% 
+  summarise(count_close = n())
+
+rec_rate_close_to_GSP_2019_N
+
+rec_rate_close_to_GSP_2019_N <- rec_rate_close_to_GSP_2019_N %>% 
+  mutate(details = "GPS_close_N_2019",
+         count_GPS = count_rec_rate_close_to_GSP_2019_N[1,1],
+         percentage = count_close/count_GPS) 
+  #filter(GPS_close_rec_rate == "GPS_close")
+
+
+######################################################################################################################
+rec_rate_close_to_GSP_2019_N
+rec_rate_close_to_GSP_2019_P
+
+rec_rate_close_to_GSP_2019_N_P <- rbind(rec_rate_close_to_GSP_2019_N, rec_rate_close_to_GSP_2019_P)
+rec_rate_close_to_GSP_2019_N_P
+
+######################################################################################################################
+
+
+
+
+rec_rate_close_to_GSP_2020_P <- rec_rate_vs_GSP_2020_P_GSP %>% 
+  select(Zone_ID, Strip_Type, p_rec, Rate , GSP, Total_sum_P_content )
+
+rec_rate_close_to_GSP_2020_P <- rec_rate_close_to_GSP_2020_P %>% 
+  dplyr::mutate(p_rec_lower = p_rec - 5,
+                p_rec_upper = p_rec + 5
+  )
+
+rec_rate_close_to_GSP_2020_P <- rec_rate_close_to_GSP_2020_P %>% 
+  dplyr::mutate(
+    GPS_close_rec_rate = case_when(
+      Total_sum_P_content >= p_rec_lower & Total_sum_P_content <= p_rec_upper~ "GPS_close",
+      TRUE ~ "GPS_not_close"))
+
+count_rec_rate_close_to_GSP_2020_P <- count(rec_rate_close_to_GSP_2020_P)
+rec_rate_close_to_GSP_2020_P <- rec_rate_close_to_GSP_2020_P %>% 
+  group_by(GPS_close_rec_rate ) %>% 
+  summarise(count_close = n())
+
+
+rec_rate_close_to_GSP_2020_P <- rec_rate_close_to_GSP_2020_P %>% 
+  mutate(details = "GPS_close_P_2020",
+         count_GPS = count_rec_rate_close_to_GSP_2020_P[1,1],
+         percentage = count_close/count_GPS)  
+#filter(GPS_close_rec_rate == "GPS_close")
+
+rec_rate_close_to_GSP_2020_P
+
+
+
+
+###################################################################################################################### 
+###2020 N
+######################################################################################################################
+rec_rate_close_to_GSP_2020_N <- rec_rate_vs_GSP_2020_N_GSP %>% 
+  select(Zone_ID, Strip_Type, Rec_N_jax, Rate , GSP, Total_sum_N_content )
+
+rec_rate_close_to_GSP_2020_N <- rec_rate_close_to_GSP_2020_N %>% 
+  dplyr::mutate(n_rec_lower = Rec_N_jax - 10,
+                n_rec_upper = Rec_N_jax + 10
+  )
+
+rec_rate_close_to_GSP_2020_N <- rec_rate_close_to_GSP_2020_N %>% 
+  dplyr::mutate(
+    GPS_close_rec_rate = case_when(
+      Total_sum_N_content >= n_rec_lower & Total_sum_N_content <= n_rec_upper~ "GPS_close",
+      TRUE ~ "GPS_not_close"))
+#View(rec_rate_close_to_GSP_2020_N)
+count_rec_rate_close_to_GSP_2020_N <- count(rec_rate_close_to_GSP_2020_N)
+count_rec_rate_close_to_GSP_2020_N
+
+
+rec_rate_close_to_GSP_2020_N <- rec_rate_close_to_GSP_2020_N %>% 
+  group_by(GPS_close_rec_rate ) %>% 
+  summarise(count_close = n())
+
+rec_rate_close_to_GSP_2020_N
+
+rec_rate_close_to_GSP_2020_N <- rec_rate_close_to_GSP_2020_N %>% 
+  mutate(details = "GPS_close_N_2020",
+         count_GPS = count_rec_rate_close_to_GSP_2020_N[1,1],
+         percentage = count_close/count_GPS) 
+#filter(GPS_close_rec_rate == "GPS_close")
+
+
+######################################################################################################################
+rec_rate_close_to_GSP_2020_N
+rec_rate_close_to_GSP_2020_P
+
+rec_rate_close_to_GSP_2020_N_P <- rbind(rec_rate_close_to_GSP_2020_N, rec_rate_close_to_GSP_2020_P)
+rec_rate_close_to_GSP_2020_N_P
+
+######################################################################################################################
+
+rec_rate_close_to_GSP_2020_N_P
+rec_rate_close_to_GSP_2019_N_P
+
+rec_rate_close_to_GSP_2019_20_N_P <- rbind(rec_rate_close_to_GSP_2019_N_P, rec_rate_close_to_GSP_2020_N_P)
+rec_rate_close_to_GSP_2019_20_N_P
 
 ```
 
 
-
+```{r was rec rate close to grower rate display, echo=FALSE, message=TRUE, warning=FALSE}
+rec_rate_close_to_GSP_2019_20_N_P
+```
 
 # How do the recommended rates compare in the multiple zones in the paddock
 
