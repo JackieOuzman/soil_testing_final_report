@@ -1075,7 +1075,9 @@ t.test2019_details <- full_join(details_2019, t.test_2019)
 # I have two problem paddocks Jeff (53621) no rates no analysis and Mervyns non zone 312431 
 
 t.test2019_details <- t.test2019_details %>% 
-  filter(Paddock_tested != "Mervyns")
+  filter(!is.na(Paddock_ID))
+# t.test2019_details <- t.test2019_details %>% 
+#   filter(Paddock_tested != "Mervyns")
 t.test2019_details <- t.test2019_details %>% 
   filter(Paddock_ID != 53621)
 
@@ -1429,7 +1431,7 @@ All_zone_rates_2019 <-neat_t.test_details_rec_rates
 ```{r write out 2019 data, message=TRUE, warning=FALSE, include=FALSE}
 
 # write.csv(All_zone_rates_2019, "W:/value_soil_testing_prj/Yield_data/2020/processing/processing_files/for_econmics/GM_t.test_details_rec_rates2019_check.csv")
-
+# 
 
 
 ```
@@ -1892,12 +1894,12 @@ all_rec_rate <- grid.arrange(plot_rec_N_2019, plot_rec_N_2020,
 
 
 all_rec_rate
-# ggsave(all_rec_rate,
-#        filename = "W:/value_soil_testing_prj/Yield_data/scripts/final_report/soil_testing_final_report/plot_rec_rates.png", 
-#        device = "png" ,
-#        dpi=600,
-#        width = 16,
-#        height = 9)
+ ggsave(all_rec_rate,
+        filename = "W:/value_soil_testing_prj/Yield_data/scripts/final_report/soil_testing_final_report/plot_rec_rates.png", 
+        device = "png" ,
+        dpi=600,
+        width = 16,
+        height = 9)
 
 
 ```
