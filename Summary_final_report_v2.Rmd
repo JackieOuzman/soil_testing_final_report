@@ -552,7 +552,7 @@ t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>%
       Strip_Type == "P Strip" & rainfall_class == "high" ~    540,
       
       Strip_Type == "N Strip" & rainfall_class == "low" ~     220,
-      Strip_Type == "N Strip" & rainfall_class == "medium" ~  340,
+      Strip_Type == "N Strip" & rainfall_class == "medium" ~  348,
       Strip_Type == "N Strip" & rainfall_class == "high" ~    498))
 
 ### I don't get this step but it converts N applied from kg/ha to cost of N $ha
@@ -760,7 +760,7 @@ t.test_details_rec_rates_20 <- t.test_details_rec_rates_20 %>%
       Strip_Type == "P Strip" & rainfall_class == "high" ~    540,
       
       Strip_Type == "N Strip" & rainfall_class == "low" ~     220,
-      Strip_Type == "N Strip" & rainfall_class == "medium" ~  340,
+      Strip_Type == "N Strip" & rainfall_class == "medium" ~  348,
       Strip_Type == "N Strip" & rainfall_class == "high" ~    498))
 
 ### I don't get this step but it converts N applied from kg/ha to cost of N $ha
@@ -3665,8 +3665,534 @@ I have done this a bit differently.
 I have now included all the data, if a zone / strip is classed as the GSP and the rec rate it appears twice.
 One for each data.
 
-I have allocated the cost of test to the approx rec rate not the GSP which was what was done in 2019.
-Also note that for these graphs I have stopped the negative values from displaying
+### 2019 N rates GSP & Rec rates yield results
+```{r 2019 Yld N plots GSP vs approx all data, echo=FALSE, message=TRUE, warning=FALSE}
+N_2019_GSP <- All_zone_rates_2019 %>%
+  filter(Strip_Type == "N Strip") %>% 
+  filter(GSP == "GSP") %>% 
+  #filter(rec_rate_approx_n == "approx_rec_rate") %>%
+  dplyr::select(Paddock_ID, 
+                Zone_ID, 
+                Total_N,
+                #Colwell,
+                #DGT,
+                #PBI,
+                Rec_N_jax,
+                #p_rec_jax,
+                GSP,
+                Total_sum_N_content,
+                #Total_sum_P_content,
+                rainfall_class,
+                rec_rate_approx_n,
+                Yld,
+                GM
+                
+  ) %>%
+  distinct(Zone_ID, .keep_all = TRUE)
+
+#count(N_2019_GSP)
+N_2019_GSP$rainfall_class <- factor(N_2019_GSP$rainfall_class, 
+                                    levels = c("low", "medium", "high"))
+
+N_2019_GSP <- N_2019_GSP %>% 
+  dplyr::select(Zone_ID, rainfall_class,
+                n_content_GSP = Total_sum_N_content,
+                Yld_GSP = Yld,
+                GM_GSP =GM)
+
+#View(N_2019_GSP)
+N_2019_GSP %>% group_by(rainfall_class)%>%
+  summarise(count = n())
+
+#####################################################################
+## what is the N contnet of the rec rate?
+N_2019_approx_rate <- All_zone_rates_2019 %>%
+  filter(Strip_Type == "N Strip") %>% 
+  filter(rec_rate_approx_n == "approx_rec_rate") %>% 
+  dplyr::select(Paddock_ID, 
+                Zone_ID, 
+                Total_N,
+                #Colwell,
+                #DGT,
+                #PBI,
+                Rec_N_jax,
+                #p_rec_jax,
+                GSP,
+                Total_sum_N_content,
+                #Total_sum_P_content,
+                rainfall_class,
+                rec_rate_approx_n,
+                Yld,
+                GM
+                
+  ) %>%
+  distinct(Zone_ID, .keep_all = TRUE)
+
+#count(N_2019_approx_rate)
+
+N_2019_approx_rate$rainfall_class <- factor(N_2019_approx_rate$rainfall_class, 
+                                            levels = c("low", "medium", "high"))
+#str(N_2020_approx_rate)
+N_2019_approx_rate <- N_2019_approx_rate %>% 
+  dplyr::select(Zone_ID, rainfall_class,
+                n_content_rec_rate = Total_sum_N_content,
+                Yld_rec_rate = Yld,
+                GM_rec_rate =GM)
+
+## what is the approx recom rate? what is the approx GSP
+N_2019_approx_rate %>% group_by(rainfall_class)%>%
+  summarise(count = n())
+
+
+#####################################################################
+##Join the two df togther
+#str(N_2019_approx_rate)
+#str(N_2019_GSP)
+
+N_2019_approx_rate_GSP <- full_join(N_2019_approx_rate, N_2019_GSP)
+
+#str(N_2019_approx_rate_GSP)
+
+N_2019_approx_rate_GSP <- N_2019_approx_rate_GSP %>% 
+  filter(!is.na(Zone_ID)) %>% 
+  filter (!is.na(n_content_rec_rate)) %>% 
+  filter( !is.na(n_content_GSP) )
+
+N_2019_approx_rate_GSP %>% group_by(rainfall_class)%>%
+  summarise(count = n())
+str(N_2019_approx_rate_GSP)
+
+## need to make this into a long dataset
+N_2019_approx_rate_GSP_plot_long_YLD <- N_2019_approx_rate_GSP %>% 
+  dplyr::select (Zone_ID,rainfall_class, Yld_rec_rate,Yld_GSP ) 
+
+
+
+N_2019_approx_rate_GSP_plot_long_YLD <- N_2019_approx_rate_GSP_plot_long_YLD %>% 
+  pivot_longer(cols = starts_with("Yld"),
+               names_to = "strip",
+               values_to = "Yld")
+
+
+
+N_2019_YLD_clm <-N_2019_approx_rate_GSP_plot_long_YLD %>%  
+  ggplot(aes(x = rainfall_class, y = Yld, fill = strip)) +
+  geom_bar(aes(rainfall_class, Yld, fill = as.factor(strip)),
+           position = "dodge", stat = "summary", fun.y = "mean")+
+  ylim(0, 6)+
+  theme_bw()+
+  scale_fill_manual(values=c("darkblue", "grey"),
+                    name="strip",
+                    breaks=c("Yld_rec_rate", "Yld_GSP"),
+                    labels=c("Aprrox. rec rate", "GSP"))+
+  labs(x = "rainfall class", y = "Yield t/ha",
+       title = "N 2019")+
+theme(axis.title.y = element_text(size = 24),
+       axis.title.x = element_text(size = 24),
+        plot.title = element_text(size = 24),
+        #axis.title.y = element_blank(),
+        #axis.title.x = element_blank(),
+        axis.text.x = element_text(size = 24),
+        axis.text.y = element_text(size = 24))
+
+
+
+
+
+N_2019_YLD_box <- N_2019_approx_rate_GSP_plot_long_YLD %>%  
+  ggplot(aes(x = rainfall_class, y = Yld, color =strip)) +
+  geom_point(position = position_dodge(width=0.75))+
+  scale_color_manual(values=c("grey", "darkblue"))+   
+  geom_boxplot(alpha = 0.1, width=0.75,aes(fill = strip)) +
+  scale_fill_manual(values=c("darkblue", "grey"),
+                    name="strip",
+                    breaks=c("Yld_rec_rate", "Yld_GSP"),
+                    labels=c("Aprrox. rec rate", "GSP"))+
+  ylim(0,6)+
+  theme_bw()+
+  labs(x = "rainfall class", y = "Yield t/ha")+
+theme(axis.title.y = element_text(size = 24),
+        axis.title.x = element_text(size = 24),
+        plot.title = element_text(size = 24),
+        #axis.title.y = element_blank(),
+        #axis.title.x = element_blank(),
+        axis.text.x = element_text(size = 24),
+        axis.text.y = element_text(size = 24))
+
+N_2019_YLD_clm
+N_2019_YLD_box
+
+
+ ggsave(N_2019_YLD_clm,
+        filename = 
+          "W:/value_soil_testing_prj/Yield_data/scripts/final_report/soil_testing_final_report/N_2019_YLD_clm.png", 
+        device = "png" ,
+        dpi=600,
+        width = 16,
+        height = 9)
+ 
+ ggsave(N_2019_YLD_box,
+        filename = 
+          "W:/value_soil_testing_prj/Yield_data/scripts/final_report/soil_testing_final_report/N_2019_YLD_box.png", 
+        device = "png" ,
+        dpi=600,
+        width = 16,
+        height = 9)
+
+```
+### 2020 N rates GSP & Rec rates yield results
+
+```{r 2020 Yld N plots GSP vs approx all data, echo=FALSE, message=TRUE, warning=FALSE}
+N_2020_GSP <- All_zone_rates_2020 %>%
+  filter(Strip_Type == "N Strip") %>% 
+  filter(GSP == "GSP") %>% 
+  #filter(rec_rate_approx_n == "approx_rec_rate") %>%
+  dplyr::select(Paddock_ID, 
+                Zone_ID, 
+                Total_N,
+                #Colwell,
+                #DGT,
+                #PBI,
+                Rec_N_jax,
+                #p_rec_jax,
+                GSP,
+                Total_sum_N_content,
+                #Total_sum_P_content,
+                rainfall_class,
+                rec_rate_approx_n,
+                Yld,
+                GM
+                
+  ) %>%
+  distinct(Zone_ID, .keep_all = TRUE)
+
+#count(N_2020_GSP)
+N_2020_GSP$rainfall_class <- factor(N_2020_GSP$rainfall_class, 
+                                    levels = c("low", "medium", "high"))
+
+N_2020_GSP <- N_2020_GSP %>% 
+  dplyr::select(Zone_ID, rainfall_class,
+                n_content_GSP = Total_sum_N_content,
+                Yld_GSP = Yld,
+                GM_GSP =GM)
+
+#View(N_2020_GSP)
+N_2020_GSP %>% group_by(rainfall_class)%>%
+  summarise(count = n())
+
+#####################################################################
+## what is the N contnet of the rec rate?
+N_2020_approx_rate <- All_zone_rates_2020 %>%
+  filter(Strip_Type == "N Strip") %>% 
+  filter(rec_rate_approx_n == "approx_rec_rate") %>% 
+  dplyr::select(Paddock_ID, 
+                Zone_ID, 
+                Total_N,
+                #Colwell,
+                #DGT,
+                #PBI,
+                Rec_N_jax,
+                #p_rec_jax,
+                GSP,
+                Total_sum_N_content,
+                #Total_sum_P_content,
+                rainfall_class,
+                rec_rate_approx_n,
+                Yld,
+                GM
+                
+  ) %>%
+  distinct(Zone_ID, .keep_all = TRUE)
+
+#count(N_2020_approx_rate)
+
+N_2020_approx_rate$rainfall_class <- factor(N_2020_approx_rate$rainfall_class, 
+                                            levels = c("low", "medium", "high"))
+#str(N_2020_approx_rate)
+N_2020_approx_rate <- N_2020_approx_rate %>% 
+  dplyr::select(Zone_ID, rainfall_class,
+                n_content_rec_rate = Total_sum_N_content,
+                Yld_rec_rate = Yld,
+                GM_rec_rate =GM)
+
+## what is the approx recom rate? what is the approx GSP
+N_2020_approx_rate %>% group_by(rainfall_class)%>%
+  summarise(count = n())
+
+
+#####################################################################
+##Join the two df togther
+#str(N_2020_approx_rate)
+#str(N_2020_GSP)
+
+N_2020_approx_rate_GSP <- full_join(N_2020_approx_rate, N_2020_GSP)
+
+#str(N_2020_approx_rate_GSP)
+
+N_2020_approx_rate_GSP <- N_2020_approx_rate_GSP %>% 
+  filter(!is.na(Zone_ID)) %>% 
+  filter (!is.na(n_content_rec_rate)) %>% 
+  filter( !is.na(n_content_GSP) )
+
+N_2020_approx_rate_GSP %>% group_by(rainfall_class)%>%
+  summarise(count = n())
+str(N_2020_approx_rate_GSP)
+
+## need to make this into a long dataset
+N_2020_approx_rate_GSP_plot_long_YLD <- N_2020_approx_rate_GSP %>% 
+  dplyr::select (Zone_ID,rainfall_class, Yld_rec_rate,Yld_GSP ) 
+
+
+
+N_2020_approx_rate_GSP_plot_long_YLD <- N_2020_approx_rate_GSP_plot_long_YLD %>% 
+  pivot_longer(cols = starts_with("Yld"),
+               names_to = "strip",
+               values_to = "Yld")
+
+
+
+N_2020_YLD_clm <-N_2020_approx_rate_GSP_plot_long_YLD %>%  
+  ggplot(aes(x = rainfall_class, y = Yld, fill = strip)) +
+  geom_bar(aes(rainfall_class, Yld, fill = as.factor(strip)),
+           position = "dodge", stat = "summary", fun.y = "mean")+
+  ylim(0, 6)+
+  theme_bw()+
+  scale_fill_manual(values=c("darkblue", "grey"),
+                    name="strip",
+                    breaks=c("Yld_rec_rate", "Yld_GSP"),
+                    labels=c("Aprrox. rec rate", "GSP"))+
+  labs(x = "rainfall class", y = "Yield t/ha",
+       title = "N 2020")+
+  theme(axis.title.y = element_text(size = 24),
+        axis.title.x = element_text(size = 24),
+        plot.title = element_text(size = 24),
+        #axis.title.y = element_blank(),
+        #axis.title.x = element_blank(),
+        axis.text.x = element_text(size = 24),
+        axis.text.y = element_text(size = 24))
+
+
+
+
+
+N_2020_YLD_box <- N_2020_approx_rate_GSP_plot_long_YLD %>%  
+  ggplot(aes(x = rainfall_class, y = Yld, color =strip)) +
+  geom_point(position = position_dodge(width=0.75))+
+  scale_color_manual(values=c("grey", "darkblue"))+   
+  geom_boxplot(alpha = 0.1, width=0.75,aes(fill = strip)) +
+  scale_fill_manual(values=c("darkblue", "grey"),
+                    name="strip",
+                    breaks=c("Yld_rec_rate", "Yld_GSP"),
+                    labels=c("Aprrox. rec rate", "GSP"))+
+  ylim(0,6)+
+  theme_bw()+
+  labs(x = "rainfall class", y = "Yield t/ha")+
+  theme(axis.title.y = element_text(size = 24),
+        axis.title.x = element_text(size = 24),
+        plot.title = element_text(size = 24),
+        #axis.title.y = element_blank(),
+        #axis.title.x = element_blank(),
+        axis.text.x = element_text(size = 24),
+        axis.text.y = element_text(size = 24))
+
+N_2020_YLD_clm
+N_2020_YLD_box
+
+
+ggsave(N_2020_YLD_clm,
+       filename = 
+         "W:/value_soil_testing_prj/Yield_data/scripts/final_report/soil_testing_final_report/N_2020_YLD_clm.png", 
+       device = "png" ,
+       dpi=600,
+       width = 16,
+       height = 9)
+
+ggsave(N_2020_YLD_box,
+       filename = 
+         "W:/value_soil_testing_prj/Yield_data/scripts/final_report/soil_testing_final_report/N_2020_YLD_box.png", 
+       device = "png" ,
+       dpi=600,
+       width = 16,
+       height = 9)
+
+```
+
+2019 P yld plots something is wrong with the medium rainfall number of zones
+
+```{r 2019 Yld P plots GSP vs approx all data, echo=FALSE, message=TRUE, warning=FALSE}
+P_2019_GSP <- All_zone_rates_2019 %>%
+  filter(Strip_Type == "P Strip") %>% 
+  filter(GSP == "GSP") %>% 
+  #filter(rec_rate_approx_n == "approx_rec_rate") %>%
+  dplyr::select(Paddock_ID, 
+                Zone_ID, 
+                Total_N,
+                #Colwell,
+                #DGT,
+                #PBI,
+                #Rec_N_jax,
+                p_rec_jax,
+                GSP,
+                #Total_sum_N_content,
+                Total_sum_P_content,
+                rainfall_class,
+                rec_rate_approx_n,
+                Yld,
+                GM
+                
+  ) %>%
+  distinct(Zone_ID, .keep_all = TRUE)
+
+#count(P_2019_GSP)
+P_2019_GSP$rainfall_class <- factor(P_2019_GSP$rainfall_class, 
+                                    levels = c("low", "medium", "high"))
+
+P_2019_GSP <- P_2019_GSP %>% 
+  dplyr::select(Zone_ID, rainfall_class,
+                p_content_GSP = Total_sum_P_content,
+                Yld_GSP = Yld,
+                GM_GSP =GM)
+
+#View(N_2019_GSP)
+P_2019_GSP %>% group_by(rainfall_class)%>%
+  summarise(count = n())
+
+#####################################################################
+## what is the N contnet of the rec rate?
+P_2019_approx_rate <- All_zone_rates_2019 %>%
+  filter(Strip_Type == "P Strip") %>% 
+  filter(rec_rate_approx_n == "approx_rec_rate") %>% 
+  dplyr::select(Paddock_ID, 
+                Zone_ID, 
+                Total_N,
+                #Colwell,
+                #DGT,
+                #PBI,
+                #Rec_N_jax,
+                p_rec,
+                GSP,
+                #Total_sum_N_content,
+                Total_sum_P_content,
+                rainfall_class,
+                rec_rate_approx_n,
+                Yld,
+                GM
+                
+  ) %>%
+  distinct(Zone_ID, .keep_all = TRUE)
+
+#count(N_2019_approx_rate)
+
+P_2019_approx_rate$rainfall_class <- factor(P_2019_approx_rate$rainfall_class, 
+                                            levels = c("low", "medium", "high"))
+#str(N_2019_approx_rate)
+P_2019_approx_rate <- P_2019_approx_rate %>% 
+  dplyr::select(Zone_ID, rainfall_class,
+                p_content_rec_rate = Total_sum_P_content,
+                Yld_rec_rate = Yld,
+                GM_rec_rate =GM)
+
+## what is the approx recom rate? what is the approx GSP
+P_2019_approx_rate %>% group_by(rainfall_class)%>%
+  summarise(count = n())
+
+
+#####################################################################
+##Join the two df togther
+#str(N_2019_approx_rate)
+#str(N_2019_GSP)
+
+P_2019_approx_rate_GSP <- full_join(P_2019_approx_rate, P_2019_GSP)
+
+#str(N_2019_approx_rate_GSP)
+
+P_2019_approx_rate_GSP <- P_2019_approx_rate_GSP %>% 
+  #filter(!is.na(Zone_ID)) %>% 
+  filter (!is.na(p_content_rec_rate)) %>% 
+  filter( !is.na(p_content_GSP) )
+
+P_2019_approx_rate_GSP %>% group_by(rainfall_class)%>%
+  summarise(count = n())
+str(P_2019_approx_rate_GSP)
+
+## need to make this into a long dataset
+P_2019_approx_rate_GSP_plot_long_YLD <- P_2019_approx_rate_GSP %>% 
+  dplyr::select (Zone_ID,rainfall_class, Yld_rec_rate,Yld_GSP ) 
+
+
+
+P_2019_approx_rate_GSP_plot_long_YLD <- P_2019_approx_rate_GSP_plot_long_YLD %>% 
+  pivot_longer(cols = starts_with("Yld"),
+               names_to = "strip",
+               values_to = "Yld")
+
+
+
+P_2019_YLD_clm <-P_2019_approx_rate_GSP_plot_long_YLD %>%  
+  ggplot(aes(x = rainfall_class, y = Yld, fill = strip)) +
+  geom_bar(aes(rainfall_class, Yld, fill = as.factor(strip)),
+           position = "dodge", stat = "summary", fun.y = "mean")+
+  ylim(0, 6)+
+  theme_bw()+
+  scale_fill_manual(values=c("darkblue", "grey"),
+                    name="strip",
+                    breaks=c("Yld_rec_rate", "Yld_GSP"),
+                    labels=c("Aprrox. rec rate", "GSP"))+
+  labs(x = "rainfall class", y = "Yield t/ha",
+       title = "N 2019")+
+  theme(axis.title.y = element_text(size = 24),
+        axis.title.x = element_text(size = 24),
+        plot.title = element_text(size = 24),
+        #axis.title.y = element_blank(),
+        #axis.title.x = element_blank(),
+        axis.text.x = element_text(size = 24),
+        axis.text.y = element_text(size = 24))
+
+
+
+
+
+P_2019_YLD_box <- P_2019_approx_rate_GSP_plot_long_YLD %>%  
+  ggplot(aes(x = rainfall_class, y = Yld, color =strip)) +
+  geom_point(position = position_dodge(width=0.75))+
+  scale_color_manual(values=c("grey", "darkblue"))+   
+  geom_boxplot(alpha = 0.1, width=0.75,aes(fill = strip)) +
+  scale_fill_manual(values=c("darkblue", "grey"),
+                    name="strip",
+                    breaks=c("Yld_rec_rate", "Yld_GSP"),
+                    labels=c("Aprrox. rec rate", "GSP"))+
+  ylim(0,6)+
+  theme_bw()+
+  labs(x = "rainfall class", y = "Yield t/ha")+
+  theme(axis.title.y = element_text(size = 24),
+        axis.title.x = element_text(size = 24),
+        plot.title = element_text(size = 24),
+        #axis.title.y = element_blank(),
+        #axis.title.x = element_blank(),
+        axis.text.x = element_text(size = 24),
+        axis.text.y = element_text(size = 24))
+
+P_2019_YLD_clm
+P_2019_YLD_box
+
+
+ggsave(N_2019_YLD_clm,
+       filename = 
+         "W:/value_soil_testing_prj/Yield_data/scripts/final_report/soil_testing_final_report/P_2019_YLD_clm.png", 
+       device = "png" ,
+       dpi=600,
+       width = 16,
+       height = 9)
+
+ggsave(N_2019_YLD_box,
+       filename = 
+         "W:/value_soil_testing_prj/Yield_data/scripts/final_report/soil_testing_final_report/P_2019_YLD_box.png", 
+       device = "png" ,
+       dpi=600,
+       width = 16,
+       height = 9)
+
+```
 
 ### 2019 N rates GM & Rec rates
 
