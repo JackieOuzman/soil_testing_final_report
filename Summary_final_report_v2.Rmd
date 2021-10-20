@@ -5263,3 +5263,234 @@ case_study2_N %>%  group_by(Total_sum_N_content) %>%
             av_GM_zone = mean(GM, na.rm = TRUE))
             
 ```
+
+
+
+### Case study 3 524110
+
+This contains the whole strip plot used in the w/s.
+
+
+"W:\value_soil_testing_prj\Yield_data\2020\processing\r_scripts\site_t_test\MSF\Andreson_Gleeson_2021 WS.R"
+
+```{r 2020 case study 3, echo=FALSE, message=TRUE, warning=FALSE}
+
+case_study3 <- All_zone_rates_2020 %>% 
+  filter(Paddock_ID == "52411") %>% 
+  dplyr::select(Strip_Type,
+                Zone_ID,
+                Paddock_tested,
+                Total_N,
+                Colwell,
+                DGT,
+                p_rec,
+                Rec_N_jax,
+                Total_sum_N_content,
+                Total_sum_P_content,
+                Yld,
+                GM,
+                GSP,
+                rec_rate_approx_p,
+                rec_rate_approx_n)%>% 
+  arrange(Zone_ID, Total_sum_N_content)
+
+
+## make a table that has zone 1 and zone 2
+#test results, rec rate, GSP, Yld and GM, P inputs
+
+case_study3_zone_details <- case_study3 %>% 
+  distinct(Zone_ID, .keep_all = TRUE) %>% 
+dplyr::select(Zone_ID, Strip_Type,Paddock_tested,Total_N, Rec_N_jax, rec_rate_approx_n)
+#dplyr::select(Zone_ID, Colwell, DGT, p_rec, rec_rate_approx_p) 
+
+case_study3_zone_details
+
+case_study3_N <- case_study3 %>% 
+  mutate(Yld = round(Yld, 1),
+         GM = round(GM, 0) ,
+        Total_sum_N_content = round(Total_sum_N_content, 0))%>% 
+  dplyr::select(Zone_ID, Total_sum_N_content, Yld , GM , GSP, rec_rate_approx_n) 
+
+case_study3_N
+
+
+
+```
+
+### Case study 3 with an average across for the entire strip (not just zones)
+
+```{r 2020 case study 3 av strip, echo=FALSE, message=TRUE, warning=FALSE}
+case_study3 <- All_zone_rates_2020 %>% 
+  filter(Paddock_ID == "52411") %>% 
+  dplyr::select(Strip_Type,
+                Zone_ID,
+                Paddock_tested,
+                Total_N,
+                Colwell,
+                DGT,
+                p_rec,
+                Rec_N_jax,
+                Rate,
+                Total_sum_N_content,
+                Total_sum_P_content,
+                Yld,
+                GM,
+                GSP,
+                rec_rate_approx_p,
+                rec_rate_approx_n,
+                rainfall_class )%>% 
+  arrange(Zone_ID, Total_sum_P_content)
+
+
+##########################################################################
+### bring in the whole strip data
+
+whole_strip_study3 <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/FSG/MSF_Frontier_Farming/Anderson/Gleesons/output/Gleesons_Yld_SegID_Zone.csv")
+
+
+
+whole_strip_study3$GSP <- as.character(whole_strip_study3$GSP)
+names(whole_strip_study3)
+
+whole_strip_study3 <- whole_strip_study3 %>% 
+  dplyr::select(Yield, Paddock_ID:Zone) 
+
+##########################################################################
+## remove the alt strip
+whole_strip_study3 <- whole_strip_study3 %>%
+  filter(GSP != "Alt GSP" ) 
+
+### group the data by rate
+whole_strip_study3 <- whole_strip_study3 %>%  group_by(Rate) %>% 
+  summarise(yld_var_strip = mean(Yield, na.rm = TRUE))
+
+whole_strip_study3 <- whole_strip_study3 %>% 
+  mutate(Rate = case_when(
+    Rate == 400 ~ 9.6,
+    Rate == 800 ~ 19.2,
+    Rate == 8050 ~ 42.2,
+    Rate == 80150 ~ 88.2))
+
+
+whole_strip_study3 <- left_join(whole_strip_study3,case_study3) %>% 
+  distinct(Rate, .keep_all = TRUE) %>% 
+  dplyr::select(Strip_Type:Total_sum_P_content ,Rate, Yld =yld_var_strip, rainfall_class)
+
+
+### GM cals
+whole_strip_study3 <- whole_strip_study3 %>% 
+  mutate(grain_income = Yld * 286)
+
+
+whole_strip_study3 <- whole_strip_study3 %>% 
+  dplyr::mutate(
+    variable_costs = case_when(
+      Strip_Type == "P Strip" & rainfall_class == "low" ~     194,
+      Strip_Type == "P Strip" & rainfall_class == "medium" ~  358,
+      Strip_Type == "P Strip" & rainfall_class == "high" ~    540,
+      
+      Strip_Type == "N Strip" & rainfall_class == "low" ~     220,
+      Strip_Type == "N Strip" & rainfall_class == "medium" ~  340,
+      Strip_Type == "N Strip" & rainfall_class == "high" ~    498))
+### I don't get this step but it converts N applied from kg/ha to cost of N $ha
+#str(whole_strip_study2)
+whole_strip_study3 <- whole_strip_study3 %>% 
+  dplyr::mutate(
+    Cost_P_N_dollar_ha  = case_when(
+      Strip_Type == "P Strip"  ~     Total_sum_P_content * 2.9,
+      Strip_Type == "N Strip"  ~     Total_sum_N_content * 1.1))     
+
+## GM
+#GM = Income grain – cost test – variable cost – cost of N
+
+
+whole_strip_study3 <- whole_strip_study3 %>% 
+  dplyr::mutate(
+    total_cost = 
+      #cost_test + 
+      variable_costs + Cost_P_N_dollar_ha,
+    GM  = grain_income - total_cost)
+
+
+whole_strip_study3 <- whole_strip_study3 %>% 
+  dplyr::select(Rate, 
+                #Total_sum_P_content,
+                Total_sum_N_content,
+                Yld,
+                GM)
+whole_strip_study3
+```
+
+
+### Case study 3 with an average across the zones
+
+```{r 2020 case study 3 av zones, echo=FALSE, message=TRUE, warning=FALSE}
+case_study3_N
+case_study3_N %>%  group_by(Total_sum_N_content) %>% 
+  summarise(av_yld_zone = mean(Yld, na.rm = TRUE),
+            av_GM_zone = mean(GM, na.rm = TRUE))
+            
+```
+
+
+### Alternative GSP
+
+
+```{r 2020 alt GSP working, message=TRUE, warning=FALSE, include=FALSE}
+Alt_2020 <- read.csv("W:/value_soil_testing_prj/Yield_data/2020/processing/r_outputs/merged_comparision_output/GSP_AltGSP_t_test_merged_3c.csv")
+names(Alt_2020)
+Alt_2020 <- Alt_2020 %>% 
+  dplyr::select(Zone_ID, Strip_Type, Alt.GSP,GSP,input_file,  Significant_practical )
+Alt_2020 <- Alt_2020 %>% 
+  filter(!is.na(GSP))
+
+
+
+#####
+table1<-Alt_2020 %>% group_by(Strip_Type)%>%
+  summarise(count_strip_type_alt = n())
+
+table2 <- Alt_2020 %>% group_by(Strip_Type, Significant_practical)%>%
+  summarise(count_strip_sig_alt = n())
+table1
+table2
+
+table <- left_join(table2,table1)
+table <- table  %>% 
+  filter(!is.na(Significant_practical))
+table <- table %>% 
+  dplyr::mutate(per_alt_diff = (count_strip_sig_alt/count_strip_type_alt)*100)
+#table
+
+#####
+table1_all<-Alt_2020 %>% 
+  summarise(count_strip_type_alt = n())
+table1_all
+table2_all <- Alt_2020 %>% group_by( Significant_practical)%>%
+  summarise(count_strip_sig_alt = n())
+#table1_all
+
+
+
+table2_all <- table2_all  %>% 
+  filter(!is.na(Significant_practical))
+
+table2_all <- table2_all %>% 
+  dplyr::mutate(per_alt_diff = (count_strip_sig_alt/116)*100)
+table2_all
+
+```
+
+for all the 116 zones with alt gsp these were the results:
+```{r 2020 alt GSP all strips, echo=FALSE, message=TRUE, warning=FALSE}
+
+table2_all
+
+```
+
+for all the 116 zones with alt gsp these were the results grouped into strip type:
+```{r 2020 alt GSP all strips, echo=FALSE, message=TRUE, warning=FALSE}
+
+table
+
+```
