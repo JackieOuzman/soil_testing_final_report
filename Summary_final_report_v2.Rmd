@@ -5489,7 +5489,7 @@ table2_all
 ```
 
 for all the 116 zones with alt gsp these were the results grouped into strip type:
-```{r 2020 alt GSP all strips, echo=FALSE, message=TRUE, warning=FALSE}
+```{r 2020 alt GSP all strips results, echo=FALSE, message=TRUE, warning=FALSE}
 
 table
 
