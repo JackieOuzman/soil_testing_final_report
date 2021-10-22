@@ -3481,7 +3481,7 @@ N_2019_YLD_clm <-N_2019_approx_rate_GSP_plot_long_YLD %>%
            position = "dodge", stat = "summary", fun.y = "mean")+
   ylim(0, 10)+
   theme_bw()+
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("Yld_rec_rate", "Yld_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -3502,9 +3502,9 @@ theme(axis.title.y = element_text(size = 24),
 N_2019_YLD_box <- N_2019_approx_rate_GSP_plot_long_YLD %>%  
   ggplot(aes(x = rainfall_class, y = Yld, color =strip)) +
   geom_point(position = position_dodge(width=0.75))+
-  scale_color_manual(values=c("grey", "darkblue"))+   
+  scale_color_manual(values=c("grey30", "darkblue"))+   
   geom_boxplot(alpha = 0.1, width=0.75,aes(fill = strip)) +
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("Yld_rec_rate", "Yld_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -3657,7 +3657,7 @@ N_2020_YLD_clm <-N_2020_approx_rate_GSP_plot_long_YLD %>%
            position = "dodge", stat = "summary", fun.y = "mean")+
   ylim(0, 10)+
   theme_bw()+
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("Yld_rec_rate", "Yld_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -3678,9 +3678,9 @@ N_2020_YLD_clm <-N_2020_approx_rate_GSP_plot_long_YLD %>%
 N_2020_YLD_box <- N_2020_approx_rate_GSP_plot_long_YLD %>%  
   ggplot(aes(x = rainfall_class, y = Yld, color =strip)) +
   geom_point(position = position_dodge(width=0.75))+
-  scale_color_manual(values=c("grey", "darkblue"))+   
+  scale_color_manual(values=c("grey30", "darkblue"))+   
   geom_boxplot(alpha = 0.1, width=0.75,aes(fill = strip)) +
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("Yld_rec_rate", "Yld_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -3834,7 +3834,7 @@ P_2019_YLD_clm <-P_2019_approx_rate_GSP_plot_long_YLD %>%
            position = "dodge", stat = "summary", fun.y = "mean")+
   ylim(0, 10)+
   theme_bw()+
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("Yld_rec_rate", "Yld_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -3855,9 +3855,9 @@ P_2019_YLD_clm <-P_2019_approx_rate_GSP_plot_long_YLD %>%
 P_2019_YLD_box <- P_2019_approx_rate_GSP_plot_long_YLD %>%  
   ggplot(aes(x = rainfall_class, y = Yld, color =strip)) +
   geom_point(position = position_dodge(width=0.75))+
-  scale_color_manual(values=c("grey", "darkblue"))+   
+  scale_color_manual(values=c("grey30", "darkblue"))+   
   geom_boxplot(alpha = 0.1, width=0.75,aes(fill = strip)) +
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("Yld_rec_rate", "Yld_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -4011,7 +4011,7 @@ P_2020_YLD_clm <-P_2020_approx_rate_GSP_plot_long_YLD %>%
            position = "dodge", stat = "summary", fun.y = "mean")+
   ylim(0, 10)+
   theme_bw()+
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("Yld_rec_rate", "Yld_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -4032,9 +4032,9 @@ P_2020_YLD_clm <-P_2020_approx_rate_GSP_plot_long_YLD %>%
 P_2020_YLD_box <- P_2020_approx_rate_GSP_plot_long_YLD %>%  
   ggplot(aes(x = rainfall_class, y = Yld, color =strip)) +
   geom_point(position = position_dodge(width=0.75))+
-  scale_color_manual(values=c("grey", "darkblue"))+   
+  scale_color_manual(values=c("grey30", "darkblue"))+   
   geom_boxplot(alpha = 0.1, width=0.75,aes(fill = strip)) +
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("Yld_rec_rate", "Yld_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -4126,9 +4126,9 @@ PN_2019_20_YLD_box <- N_P_2019_20_approx_rate_GSP_plot_long_YLD %>%
   ggplot(aes(x = label_graph, y = Yld)) +
   geom_point(position = position_dodge(width=0.75))+
   theme_bw()+
-  scale_color_manual(values=c("grey", "darkblue"))+   
+  scale_color_manual(values=c("grey30", "darkblue"))+   
   geom_boxplot(alpha = 0.1, width=0.75,aes(fill = strip)) +
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("Yld_rec_rate", "Yld_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -4266,9 +4266,9 @@ N_2019_GM_clm <-N_2019_approx_rate_GSP_plot_long_GM %>%
   ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
   geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
            position = "dodge", stat = "summary", fun.y = "mean")+
-   ylim(0,2500)+
+   ylim(0,1500)+
   theme_bw()+
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("GM_rec_rate", "GM_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -4289,9 +4289,9 @@ N_2019_GM_clm <-N_2019_approx_rate_GSP_plot_long_GM %>%
 N_2019_GM_box <- N_2019_approx_rate_GSP_plot_long_GM %>%  
   ggplot(aes(x = rainfall_class, y = GM, color =strip)) +
   geom_point(position = position_dodge(width=0.75))+
-  scale_color_manual(values=c("grey", "darkblue"))+   
+  scale_color_manual(values=c("grey30", "darkblue"))+   
   geom_boxplot(alpha = 0.1, width=0.75,aes(fill = strip)) +
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("GM_rec_rate", "GM_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -4434,9 +4434,9 @@ P_2019_GM_clm <-P_2019_approx_rate_GSP_plot_long_GM %>%
   ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
   geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
            position = "dodge", stat = "summary", fun.y = "mean")+
-   ylim(0,2500)+
+   ylim(0,1500)+
   theme_bw()+
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("GM_rec_rate", "GM_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -4457,9 +4457,9 @@ P_2019_GM_clm <-P_2019_approx_rate_GSP_plot_long_GM %>%
 P_2019_GM_box <- P_2019_approx_rate_GSP_plot_long_GM %>%  
   ggplot(aes(x = rainfall_class, y = GM, color =strip)) +
   geom_point(position = position_dodge(width=0.75))+
-  scale_color_manual(values=c("grey", "darkblue"))+   
+  scale_color_manual(values=c("grey30", "darkblue"))+   
   geom_boxplot(alpha = 0.1, width=0.75,aes(fill = strip)) +
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("GM_rec_rate", "GM_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -4604,9 +4604,9 @@ N_2020_GM_clm <-N_2020_approx_rate_GSP_plot_long_GM %>%
   ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
   geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
            position = "dodge", stat = "summary", fun.y = "mean")+
-   ylim(0,2500)+
+   ylim(0,1500)+
   theme_bw()+
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("GM_rec_rate", "GM_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -4627,9 +4627,9 @@ N_2020_GM_clm <-N_2020_approx_rate_GSP_plot_long_GM %>%
 N_2020_GM_box <- N_2020_approx_rate_GSP_plot_long_GM %>%  
   ggplot(aes(x = rainfall_class, y = GM, color =strip)) +
   geom_point(position = position_dodge(width=0.75))+
-  scale_color_manual(values=c("grey", "darkblue"))+   
+  scale_color_manual(values=c("grey30", "darkblue"))+   
   geom_boxplot(alpha = 0.1, width=0.75,aes(fill = strip)) +
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("GM_rec_rate", "GM_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -4781,9 +4781,9 @@ P_2020_GM_clm <-P_2020_approx_rate_GSP_plot_long_GM %>%
   ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
   geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
            position = "dodge", stat = "summary", fun.y = "mean")+
-   ylim(0,2500)+
+   ylim(0,1500)+
   theme_bw()+
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("GM_rec_rate", "GM_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -4804,9 +4804,9 @@ P_2020_GM_clm <-P_2020_approx_rate_GSP_plot_long_GM %>%
 P_2020_GM_box <- P_2020_approx_rate_GSP_plot_long_GM %>%  
   ggplot(aes(x = rainfall_class, y = GM, color =strip)) +
   geom_point(position = position_dodge(width=0.75))+
-  scale_color_manual(values=c("grey", "darkblue"))+   
+  scale_color_manual(values=c("grey30", "darkblue"))+   
   geom_boxplot(alpha = 0.1, width=0.75,aes(fill = strip)) +
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("GM_rec_rate", "GM_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -4917,9 +4917,9 @@ PN_2019_20_GM_box <- N_P_2019_20_approx_rate_GSP_plot_long_GM %>%
   ggplot(aes(x = label_graph, y = GM)) +
   geom_point(position = position_dodge(width=0.75))+
   theme_bw()+
-  scale_color_manual(values=c("grey", "darkblue"))+   
+  scale_color_manual(values=c("grey30", "darkblue"))+   
   geom_boxplot(alpha = 0.1, width=0.75,aes(fill = strip)) +
-  scale_fill_manual(values=c("darkblue", "grey"),
+  scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
                     breaks=c("GM_rec_rate", "GM_GSP"),
                     labels=c("Aprrox. rec rate", "GSP"))+
@@ -5492,5 +5492,108 @@ for all the 116 zones with alt gsp these were the results grouped into strip typ
 ```{r 2020 alt GSP all strips results, echo=FALSE, message=TRUE, warning=FALSE}
 
 table
+
+```
+
+
+
+How many zone were not included in the final analysis for 2020?
+
+```{r 2020 excluded from analysis, message=TRUE, warning=FALSE, include=FALSE}
+
+all_zones2020_ex <- st_read("W:/value_soil_testing_prj/Yield_data/2020/All_Zones_2020_wgs84.shp")
+
+all_zones2020_ex <- all_zones2020_ex %>%
+  dplyr::select(Zone_ID, join_field, 
+                source_dir,
+                Paddock_ID,
+                Status,
+                XLSExclude,
+                NoAnalysis,
+                Strip_Type) 
+
+#2.turn polygons into points - centriod
+all_zones2020_ex_centroid = st_centroid(all_zones2020_ex)
+
+
+
+all_zones2020_ex_df <- as.data.frame(all_zones2020_ex_centroid)
+
+
+
+
+```
+ 
+2020 P included vs excluded in final analsyis
+
+Percenatge of zone used in analysis 
+
+```{r 2020 P excluded from analysis, echo=FALSE, message=TRUE, warning=FALSE}
+
+P_zone_total_2020 <- all_zones2020_ex_df %>% 
+  filter(Strip_Type == "P Strip") %>% 
+  distinct(Zone_ID , .keep_all = TRUE)%>% 
+count()
+
+P_zone_used_2020 <-All_zone_rates_2020 %>% 
+  filter(Strip_Type == "P Strip") %>% 
+  distinct(Zone_ID , .keep_all = TRUE)%>%
+count()
+
+
+# P_zone_total_2020
+# P_zone_used_2020
+
+(P_zone_used_2020 / P_zone_total_2020) *100
+
+```
+
+
+2020 N included vs excluded in final analsyis
+
+Percenatge of zone used in analysis 
+
+```{r 2020 N excluded from analysis, echo=FALSE, message=TRUE, warning=FALSE}
+
+N_zone_total_2020 <- all_zones2020_ex_df %>% 
+  filter(Strip_Type == "N Strip") %>% 
+  distinct(Zone_ID , .keep_all = TRUE)%>% 
+count()
+
+N_zone_used_2020 <-All_zone_rates_2020 %>% 
+  filter(Strip_Type == "N Strip") %>% 
+  distinct(Zone_ID , .keep_all = TRUE)%>%
+count()
+
+
+N_zone_total_2020
+N_zone_used_2020
+
+(N_zone_used_2020 / N_zone_total_2020) *100
+
+```
+Total of zone used in 2020 analysis
+```{r 2020 P + N excluded from analysis, echo=FALSE, message=TRUE, warning=FALSE}
+
+
+
+
+
+
+((N_zone_used_2020+P_zone_used_2020) / (N_zone_total_2020 + P_zone_total_2020)) *100
+
+```
+
+otal of zone NOT used in 2020 analysis
+```{r 2020 P + N NOT from analysis, echo=FALSE, message=TRUE, warning=FALSE}
+
+
+
+
+
+
+used <- ((((N_zone_used_2020+P_zone_used_2020) / (N_zone_total_2020 + P_zone_total_2020)) *100))
+
+100- used 
 
 ```
