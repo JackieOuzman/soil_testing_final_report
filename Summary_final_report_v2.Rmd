@@ -3478,7 +3478,7 @@ N_2019_approx_rate_GSP_plot_long_YLD <- N_2019_approx_rate_GSP_plot_long_YLD %>%
 N_2019_YLD_clm <-N_2019_approx_rate_GSP_plot_long_YLD %>%  
   ggplot(aes(x = rainfall_class, y = Yld, fill = strip)) +
   geom_bar(aes(rainfall_class, Yld, fill = as.factor(strip)),
-           position = "dodge", stat = "summary", fun.y = "mean")+
+           position = "dodge", stat = "summary", fun.y = "median")+
   ylim(0, 10)+
   theme_bw()+
   scale_fill_manual(values=c("darkblue", "grey30"),
@@ -3487,13 +3487,13 @@ N_2019_YLD_clm <-N_2019_approx_rate_GSP_plot_long_YLD %>%
                     labels=c("Aprrox. rec rate", "GSP"))+
   labs(x = "rainfall class", y = "Yield t/ha",
        title = "N 2019")+
-theme(axis.title.y = element_text(size = 24),
-       axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+theme(axis.title.y = element_text(size = 34),
+       axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 
 
@@ -3511,13 +3511,13 @@ N_2019_YLD_box <- N_2019_approx_rate_GSP_plot_long_YLD %>%
   ylim(0,10)+
   theme_bw()+
   labs(x = "rainfall class", y = "Yield t/ha")+
-theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 N_2019_YLD_clm
 N_2019_YLD_box
@@ -3654,7 +3654,7 @@ N_2020_approx_rate_GSP_plot_long_YLD <- N_2020_approx_rate_GSP_plot_long_YLD %>%
 N_2020_YLD_clm <-N_2020_approx_rate_GSP_plot_long_YLD %>%  
   ggplot(aes(x = rainfall_class, y = Yld, fill = strip)) +
   geom_bar(aes(rainfall_class, Yld, fill = as.factor(strip)),
-           position = "dodge", stat = "summary", fun.y = "mean")+
+           position = "dodge", stat = "summary", fun.y = "median")+
   ylim(0, 10)+
   theme_bw()+
   scale_fill_manual(values=c("darkblue", "grey30"),
@@ -3663,13 +3663,13 @@ N_2020_YLD_clm <-N_2020_approx_rate_GSP_plot_long_YLD %>%
                     labels=c("Aprrox. rec rate", "GSP"))+
   labs(x = "rainfall class", y = "Yield t/ha",
        title = "N 2020")+
-  theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+  theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 
 
@@ -3687,13 +3687,13 @@ N_2020_YLD_box <- N_2020_approx_rate_GSP_plot_long_YLD %>%
   ylim(0,10)+
   theme_bw()+
   labs(x = "rainfall class", y = "Yield t/ha")+
-  theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+  theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 N_2020_YLD_clm
 N_2020_YLD_box
@@ -3831,7 +3831,7 @@ P_2019_approx_rate_GSP_plot_long_YLD <- P_2019_approx_rate_GSP_plot_long_YLD %>%
 P_2019_YLD_clm <-P_2019_approx_rate_GSP_plot_long_YLD %>%  
   ggplot(aes(x = rainfall_class, y = Yld, fill = strip)) +
   geom_bar(aes(rainfall_class, Yld, fill = as.factor(strip)),
-           position = "dodge", stat = "summary", fun.y = "mean")+
+           position = "dodge", stat = "summary", fun.y = "median")+
   ylim(0, 10)+
   theme_bw()+
   scale_fill_manual(values=c("darkblue", "grey30"),
@@ -3840,13 +3840,13 @@ P_2019_YLD_clm <-P_2019_approx_rate_GSP_plot_long_YLD %>%
                     labels=c("Aprrox. rec rate", "GSP"))+
   labs(x = "rainfall class", y = "Yield t/ha",
        title = "P 2019")+
-  theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+  theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 
 
@@ -3864,13 +3864,13 @@ P_2019_YLD_box <- P_2019_approx_rate_GSP_plot_long_YLD %>%
   ylim(0,10)+
   theme_bw()+
   labs(x = "rainfall class", y = "Yield t/ha")+
-  theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+  theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 P_2019_YLD_clm
 P_2019_YLD_box
@@ -4008,7 +4008,7 @@ P_2020_approx_rate_GSP_plot_long_YLD <- P_2020_approx_rate_GSP_plot_long_YLD %>%
 P_2020_YLD_clm <-P_2020_approx_rate_GSP_plot_long_YLD %>%  
   ggplot(aes(x = rainfall_class, y = Yld, fill = strip)) +
   geom_bar(aes(rainfall_class, Yld, fill = as.factor(strip)),
-           position = "dodge", stat = "summary", fun.y = "mean")+
+           position = "dodge", stat = "summary", fun.y = "median")+
   ylim(0, 10)+
   theme_bw()+
   scale_fill_manual(values=c("darkblue", "grey30"),
@@ -4017,13 +4017,13 @@ P_2020_YLD_clm <-P_2020_approx_rate_GSP_plot_long_YLD %>%
                     labels=c("Aprrox. rec rate", "GSP"))+
   labs(x = "rainfall class", y = "Yield t/ha",
        title = "P 2020")+
-  theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+  theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 
 
@@ -4041,13 +4041,13 @@ P_2020_YLD_box <- P_2020_approx_rate_GSP_plot_long_YLD %>%
   ylim(0,10)+
   theme_bw()+
   labs(x = "rainfall class", y = "Yield t/ha")+
-  theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+  theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 P_2020_YLD_clm
 P_2020_YLD_box
@@ -4265,7 +4265,7 @@ N_2019_approx_rate_GSP_plot_long_GM <- N_2019_approx_rate_GSP_plot_long_GM %>%
 N_2019_GM_clm <-N_2019_approx_rate_GSP_plot_long_GM %>%  
   ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
   geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
-           position = "dodge", stat = "summary", fun.y = "mean")+
+           position = "dodge", stat = "summary", fun.y = "median")+
    ylim(0,1500)+
   theme_bw()+
   scale_fill_manual(values=c("darkblue", "grey30"),
@@ -4274,13 +4274,13 @@ N_2019_GM_clm <-N_2019_approx_rate_GSP_plot_long_GM %>%
                     labels=c("Aprrox. rec rate", "GSP"))+
   labs(x = "rainfall class", y = "GM $/ha",
        title = "N 2019")+
-  theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+  theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 
 
@@ -4298,13 +4298,13 @@ N_2019_GM_box <- N_2019_approx_rate_GSP_plot_long_GM %>%
    ylim(0,2500)+
   theme_bw()+
   labs(x = "rainfall class", y = "GM $/ha")+
-  theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+  theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 N_2019_GM_clm
 N_2019_GM_box
@@ -4433,7 +4433,7 @@ P_2019_approx_rate_GSP_plot_long_GM <- P_2019_approx_rate_GSP_plot_long_GM %>%
 P_2019_GM_clm <-P_2019_approx_rate_GSP_plot_long_GM %>%  
   ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
   geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
-           position = "dodge", stat = "summary", fun.y = "mean")+
+           position = "dodge", stat = "summary", fun.y = "median")+
    ylim(0,1500)+
   theme_bw()+
   scale_fill_manual(values=c("darkblue", "grey30"),
@@ -4442,13 +4442,13 @@ P_2019_GM_clm <-P_2019_approx_rate_GSP_plot_long_GM %>%
                     labels=c("Aprrox. rec rate", "GSP"))+
   labs(x = "rainfall class", y = "GM $/ha",
        title = "P 2019")+
-  theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+  theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 
 
@@ -4466,13 +4466,13 @@ P_2019_GM_box <- P_2019_approx_rate_GSP_plot_long_GM %>%
    ylim(0,2500)+
   theme_bw()+
   labs(x = "rainfall class", y = "GM $/ha")+
-  theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+  theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 P_2019_GM_clm
 P_2019_GM_box
@@ -4603,7 +4603,7 @@ N_2020_approx_rate_GSP_plot_long_GM <- N_2020_approx_rate_GSP_plot_long_GM %>%
 N_2020_GM_clm <-N_2020_approx_rate_GSP_plot_long_GM %>%  
   ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
   geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
-           position = "dodge", stat = "summary", fun.y = "mean")+
+           position = "dodge", stat = "summary", fun.y = "median")+
    ylim(0,1500)+
   theme_bw()+
   scale_fill_manual(values=c("darkblue", "grey30"),
@@ -4612,13 +4612,13 @@ N_2020_GM_clm <-N_2020_approx_rate_GSP_plot_long_GM %>%
                     labels=c("Aprrox. rec rate", "GSP"))+
   labs(x = "rainfall class", y = "GM $/ha",
        title = "N 2020")+
-  theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+  theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 
 
@@ -4636,13 +4636,13 @@ N_2020_GM_box <- N_2020_approx_rate_GSP_plot_long_GM %>%
    ylim(0,2500)+
   theme_bw()+
   labs(x = "rainfall class", y = "GM $/ha")+
-  theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+  theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 N_2020_GM_clm
 N_2020_GM_box
@@ -4780,7 +4780,7 @@ P_2020_approx_rate_GSP_plot_long_GM <- P_2020_approx_rate_GSP_plot_long_GM %>%
 P_2020_GM_clm <-P_2020_approx_rate_GSP_plot_long_GM %>%  
   ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
   geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
-           position = "dodge", stat = "summary", fun.y = "mean")+
+           position = "dodge", stat = "summary", fun.y = "median")+
    ylim(0,1500)+
   theme_bw()+
   scale_fill_manual(values=c("darkblue", "grey30"),
@@ -4789,13 +4789,13 @@ P_2020_GM_clm <-P_2020_approx_rate_GSP_plot_long_GM %>%
                     labels=c("Aprrox. rec rate", "GSP"))+
   labs(x = "rainfall class", y = "GM $/ha",
        title = "P 2020")+
-  theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+  theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 
 
@@ -4813,13 +4813,13 @@ P_2020_GM_box <- P_2020_approx_rate_GSP_plot_long_GM %>%
   ylim(0,2500)+
   theme_bw()+
   labs(x = "rainfall class", y = "GM $/ha")+
-  theme(axis.title.y = element_text(size = 24),
-        axis.title.x = element_text(size = 24),
-        plot.title = element_text(size = 24),
+  theme(axis.title.y = element_text(size = 34),
+        axis.title.x = element_text(size = 34),
+        plot.title = element_text(size = 30),
         #axis.title.y = element_blank(),
         #axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 24),
-        axis.text.y = element_text(size = 24))
+        axis.text.x = element_text(size = 30),
+        axis.text.y = element_text(size = 30))
 
 P_2020_GM_clm
 P_2020_GM_box
