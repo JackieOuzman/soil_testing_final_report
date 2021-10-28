@@ -4262,11 +4262,37 @@ N_2019_approx_rate_GSP_plot_long_GM <- N_2019_approx_rate_GSP_plot_long_GM %>%
 
 
 
-N_2019_GM_clm <-N_2019_approx_rate_GSP_plot_long_GM %>%  
-  ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
-  geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
-           position = "dodge", stat = "summary", fun.y = "median")+
-   ylim(0,1500)+
+# N_2019_GM_clm <-N_2019_approx_rate_GSP_plot_long_GM %>%  
+#   ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
+#   geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
+#            position = "dodge", stat = "summary", fun.y = "median")+
+#    ylim(0,1500)+
+#   theme_bw()+
+#   scale_fill_manual(values=c("darkblue", "grey30"),
+#                     name="strip",
+#                     breaks=c("GM_rec_rate", "GM_GSP"),
+#                     labels=c("Aprrox. rec rate", "GSP"))+
+#   labs(x = "rainfall class", y = "GM $/ha",
+#        title = "N 2019")+
+#   theme(axis.title.y = element_text(size = 34),
+#         axis.title.x = element_text(size = 34),
+#         plot.title = element_text(size = 30),
+#         #axis.title.y = element_blank(),
+#         #axis.title.x = element_blank(),
+#         axis.text.x = element_text(size = 30),
+#         axis.text.y = element_text(size = 30))
+
+
+############################################################################################################
+N_2019_approx_rate_GSP_plot_long_GM_summary <- N_2019_approx_rate_GSP_plot_long_GM %>% 
+  group_by(rainfall_class,strip ) %>% 
+  summarise(GM_median = median(GM, na.rm= FALSE))
+
+
+N_2019_GM_clm <-N_2019_approx_rate_GSP_plot_long_GM_summary %>%
+  ggplot()+
+  geom_col( aes(x=rainfall_class, y=GM_median, fill = as.factor(strip)), position = "dodge")+
+  ylim(0,1800)+
   theme_bw()+
   scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
@@ -4281,9 +4307,6 @@ N_2019_GM_clm <-N_2019_approx_rate_GSP_plot_long_GM %>%
         #axis.title.x = element_blank(),
         axis.text.x = element_text(size = 30),
         axis.text.y = element_text(size = 30))
-
-
-
 
 
 N_2019_GM_box <- N_2019_approx_rate_GSP_plot_long_GM %>%  
@@ -4430,11 +4453,36 @@ P_2019_approx_rate_GSP_plot_long_GM <- P_2019_approx_rate_GSP_plot_long_GM %>%
                names_to = "strip",
                values_to = "GM")
 
-P_2019_GM_clm <-P_2019_approx_rate_GSP_plot_long_GM %>%  
-  ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
-  geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
-           position = "dodge", stat = "summary", fun.y = "median")+
-   ylim(0,1500)+
+# P_2019_GM_clm <-P_2019_approx_rate_GSP_plot_long_GM %>%  
+#   ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
+#   geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
+#            position = "dodge", stat = "summary", fun.y = "median")+
+#    ylim(0,1500)+
+#   theme_bw()+
+#   scale_fill_manual(values=c("darkblue", "grey30"),
+#                     name="strip",
+#                     breaks=c("GM_rec_rate", "GM_GSP"),
+#                     labels=c("Aprrox. rec rate", "GSP"))+
+#   labs(x = "rainfall class", y = "GM $/ha",
+#        title = "P 2019")+
+#   theme(axis.title.y = element_text(size = 34),
+#         axis.title.x = element_text(size = 34),
+#         plot.title = element_text(size = 30),
+#         #axis.title.y = element_blank(),
+#         #axis.title.x = element_blank(),
+#         axis.text.x = element_text(size = 30),
+#         axis.text.y = element_text(size = 30))
+
+############################################################################################################
+P_2019_approx_rate_GSP_plot_long_GM_summary <- P_2019_approx_rate_GSP_plot_long_GM %>% 
+  group_by(rainfall_class,strip ) %>% 
+  summarise(GM_median = median(GM, na.rm= FALSE))
+
+
+P_2019_GM_clm <-P_2019_approx_rate_GSP_plot_long_GM_summary %>%
+  ggplot()+
+  geom_col( aes(x=rainfall_class, y=GM_median, fill = as.factor(strip)), position = "dodge")+
+  ylim(0,1800)+
   theme_bw()+
   scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
@@ -4449,7 +4497,6 @@ P_2019_GM_clm <-P_2019_approx_rate_GSP_plot_long_GM %>%
         #axis.title.x = element_blank(),
         axis.text.x = element_text(size = 30),
         axis.text.y = element_text(size = 30))
-
 
 
 
@@ -4600,11 +4647,37 @@ N_2020_approx_rate_GSP_plot_long_GM <- N_2020_approx_rate_GSP_plot_long_GM %>%
                values_to = "GM")
 
 
-N_2020_GM_clm <-N_2020_approx_rate_GSP_plot_long_GM %>%  
-  ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
-  geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
-           position = "dodge", stat = "summary", fun.y = "median")+
-   ylim(0,1500)+
+# N_2020_GM_clm <-N_2020_approx_rate_GSP_plot_long_GM %>%  
+#   ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
+#   geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
+#            position = "dodge", stat = "summary", fun.y = "median")+
+#    ylim(0,1500)+
+#   theme_bw()+
+#   scale_fill_manual(values=c("darkblue", "grey30"),
+#                     name="strip",
+#                     breaks=c("GM_rec_rate", "GM_GSP"),
+#                     labels=c("Aprrox. rec rate", "GSP"))+
+#   labs(x = "rainfall class", y = "GM $/ha",
+#        title = "N 2020")+
+#   theme(axis.title.y = element_text(size = 34),
+#         axis.title.x = element_text(size = 34),
+#         plot.title = element_text(size = 30),
+#         #axis.title.y = element_blank(),
+#         #axis.title.x = element_blank(),
+#         axis.text.x = element_text(size = 30),
+#         axis.text.y = element_text(size = 30))
+
+
+############################################################################################################
+N_2020_approx_rate_GSP_plot_long_GM_summary <- N_2020_approx_rate_GSP_plot_long_GM %>% 
+  group_by(rainfall_class,strip ) %>% 
+  summarise(GM_median = median(GM, na.rm= FALSE))
+
+
+N_2020_GM_clm <-N_2020_approx_rate_GSP_plot_long_GM_summary %>%
+  ggplot()+
+  geom_col( aes(x=rainfall_class, y=GM_median, fill = as.factor(strip)), position = "dodge")+
+  ylim(0,1800)+
   theme_bw()+
   scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
@@ -4619,8 +4692,6 @@ N_2020_GM_clm <-N_2020_approx_rate_GSP_plot_long_GM %>%
         #axis.title.x = element_blank(),
         axis.text.x = element_text(size = 30),
         axis.text.y = element_text(size = 30))
-
-
 
 
 
@@ -4777,11 +4848,36 @@ P_2020_approx_rate_GSP_plot_long_GM <- P_2020_approx_rate_GSP_plot_long_GM %>%
 #             ave_GSP = mean(p_content_GSP,na.rm = TRUE ))
 #             
 
-P_2020_GM_clm <-P_2020_approx_rate_GSP_plot_long_GM %>%  
-  ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
-  geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
-           position = "dodge", stat = "summary", fun.y = "median")+
-   ylim(0,1500)+
+# P_2020_GM_clm <-P_2020_approx_rate_GSP_plot_long_GM %>%  
+#   ggplot(aes(x = rainfall_class, y = GM, fill = strip)) +
+#   geom_bar(aes(rainfall_class, GM, fill = as.factor(strip)),
+#            position = "dodge", stat = "summary", fun.y = "median")+
+#    ylim(0,1500)+
+#   theme_bw()+
+#   scale_fill_manual(values=c("darkblue", "grey30"),
+#                     name="strip",
+#                     breaks=c("GM_rec_rate", "GM_GSP"),
+#                     labels=c("Aprrox. rec rate", "GSP"))+
+#   labs(x = "rainfall class", y = "GM $/ha",
+#        title = "P 2020")+
+#   theme(axis.title.y = element_text(size = 34),
+#         axis.title.x = element_text(size = 34),
+#         plot.title = element_text(size = 30),
+#         #axis.title.y = element_blank(),
+#         #axis.title.x = element_blank(),
+#         axis.text.x = element_text(size = 30),
+#         axis.text.y = element_text(size = 30))
+
+############################################################################################################
+P_2020_approx_rate_GSP_plot_long_GM_summary <- P_2020_approx_rate_GSP_plot_long_GM %>% 
+  group_by(rainfall_class,strip ) %>% 
+  summarise(GM_median = median(GM, na.rm= FALSE))
+
+
+P_2020_GM_clm <-P_2020_approx_rate_GSP_plot_long_GM_summary %>%
+  ggplot()+
+  geom_col( aes(x=rainfall_class, y=GM_median, fill = as.factor(strip)), position = "dodge")+
+  ylim(0,1800)+
   theme_bw()+
   scale_fill_manual(values=c("darkblue", "grey30"),
                     name="strip",
@@ -4796,8 +4892,6 @@ P_2020_GM_clm <-P_2020_approx_rate_GSP_plot_long_GM %>%
         #axis.title.x = element_blank(),
         axis.text.x = element_text(size = 30),
         axis.text.y = element_text(size = 30))
-
-
 
 
 
