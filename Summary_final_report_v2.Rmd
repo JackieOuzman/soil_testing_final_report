@@ -1909,6 +1909,8 @@ all_rec_rate
 
 ### Tables for soil testing and recom rates
 
+P
+
 When soil test indicates that a yield respose is likely the threshold of p_rec > 5.
 I am not super happy with this thershold, I have removed the = so its a bit better.
 After talking to Sean, he says that this is the default minmum he recommeded.
@@ -1920,11 +1922,8 @@ The table below details how the rec rate suggested changing planned practice (GS
 Note that the NA in these table relate to entries which are not the GSP.
 I am only comparing the rec rate with the GSP so the other strip rates get a NA value.
 
-When soil test indicates that a yield respose is likely the threshold of p_rec > 0.
-I am not super happy with this thershold.
-
-Therese has suggested this therhold.
-
+N
+When soil test indicates that a yield respose is likely the threshold of Rec_N_jax >0
 
 
 2019 P 
@@ -1946,7 +1945,7 @@ Therese has suggested this therhold.
 
 2019 N 
 ```{r soil test indicates fert response likley N 2019, echo=FALSE, message=TRUE, warning=FALSE}
-# count how many P recom rates are above 5
+
 
 (N_zone2019 %>% filter(Rec_N_jax >0) %>% count())/(N_zone2019 %>%  count())*100
 
